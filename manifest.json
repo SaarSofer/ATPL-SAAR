@@ -1,0 +1,834 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ביצועי אנוש – ATPL</title>
+<meta name="theme-color" content="#0d2045">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="ATPL">
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="icons/icon-192.png">
+<link href="https://fonts.googleapis.com/css2?family=Heebo:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --sky:#0a1628;--white:#ffffff;--gold:#f0b429;--green:#22c55e;
+    --red:#ef4444;--blue:#60a5fa;--muted:#8fadc8;--orange:#f97316;
+  }
+  *{box-sizing:border-box;margin:0;padding:0;}
+  body{font-family:'Heebo',sans-serif;background:var(--sky);color:var(--white);min-height:100vh;direction:rtl;overflow-x:hidden;}
+  body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellipse at 20% 20%,rgba(96,165,250,.08) 0%,transparent 60%),radial-gradient(ellipse at 80% 80%,rgba(240,180,41,.05) 0%,transparent 50%),linear-gradient(180deg,#0a1628 0%,#0d2045 40%,#1a3a6e 100%);z-index:-1;}
+  body::after{content:'';position:fixed;inset:0;background-image:radial-gradient(1px 1px at 10% 15%,rgba(255,255,255,.5) 0%,transparent 100%),radial-gradient(1px 1px at 30% 8%,rgba(255,255,255,.4) 0%,transparent 100%),radial-gradient(1px 1px at 55% 5%,rgba(255,255,255,.3) 0%,transparent 100%),radial-gradient(1px 1px at 75% 18%,rgba(255,255,255,.5) 0%,transparent 100%),radial-gradient(1px 1px at 85% 10%,rgba(255,255,255,.4) 0%,transparent 100%),radial-gradient(1px 1px at 50% 30%,rgba(255,255,255,.3) 0%,transparent 100%);z-index:-1;opacity:.7;}
+
+  /* HEADER */
+  .hdr{background:rgba(10,22,40,.92);backdrop-filter:blur(20px);border-bottom:1px solid rgba(240,180,41,.3);padding:12px 20px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:200;}
+  .hdr-title{display:flex;align-items:center;gap:10px;}
+  .hdr-icon{font-size:26px;filter:drop-shadow(0 0 8px rgba(240,180,41,.6));}
+  .hdr-text h1{font-size:16px;font-weight:800;color:var(--gold);line-height:1;}
+  .hdr-text p{font-size:11px;color:var(--muted);margin-top:2px;}
+  .hdr-right{display:flex;gap:8px;align-items:center;}
+  .pill{background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.12);border-radius:20px;padding:5px 12px;font-size:12px;font-weight:600;}
+  .pill span{color:var(--gold);}
+
+  /* TABS */
+  .tabs{display:flex;padding:10px 20px 0;gap:4px;border-bottom:1px solid rgba(255,255,255,.08);background:rgba(10,22,40,.5);}
+  .tab{background:none;border:none;color:var(--muted);font-family:'Heebo',sans-serif;font-size:13px;font-weight:600;padding:8px 16px;cursor:pointer;border-radius:8px 8px 0 0;border-bottom:2px solid transparent;transition:all .2s;}
+  .tab:hover{color:var(--white);background:rgba(255,255,255,.05);}
+  .tab.on{color:var(--gold);border-bottom-color:var(--gold);background:rgba(240,180,41,.08);}
+
+  /* PAGES */
+  .page{display:none;}.page.on{display:block;}
+  .wrap{max-width:1080px;margin:0 auto;padding:22px 20px;}
+
+  /* BUTTONS */
+  .btn{font-family:'Heebo',sans-serif;font-size:13px;font-weight:700;padding:9px 18px;border-radius:9px;border:none;cursor:pointer;transition:all .2s;}
+  .btn-gold{background:linear-gradient(135deg,var(--gold),#ffd700);color:var(--sky);}
+  .btn-gold:hover{transform:translateY(-1px);box-shadow:0 4px 14px rgba(240,180,41,.4);}
+  .btn-ghost{background:rgba(255,255,255,.06);color:var(--white);border:1px solid rgba(255,255,255,.12);}
+  .btn-ghost:hover{background:rgba(255,255,255,.12);}
+  .btn-skip{background:rgba(239,68,68,.13);color:#fca5a5;border:1px solid rgba(239,68,68,.3);font-size:12px;padding:7px 13px;}
+  .btn-skip:hover{background:rgba(239,68,68,.22);}
+  .btn-note{background:rgba(96,165,250,.1);color:var(--blue);border:1px solid rgba(96,165,250,.25);font-size:12px;padding:7px 13px;}
+  .btn-note:hover{background:rgba(96,165,250,.2);}
+  .btn-green{background:linear-gradient(135deg,var(--green),#16a34a);color:white;font-family:'Heebo',sans-serif;font-size:12px;font-weight:700;padding:7px 14px;border-radius:7px;border:none;cursor:pointer;}
+  .btn-del{background:rgba(239,68,68,.15);color:#fca5a5;border:1px solid rgba(239,68,68,.3);font-family:'Heebo',sans-serif;font-size:12px;font-weight:700;padding:7px 12px;border-radius:7px;cursor:pointer;}
+  .btn-del:hover{background:rgba(239,68,68,.25);}
+
+  /* TOGGLE PILLS */
+  .tpill{background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.12);border-radius:999px;padding:5px 12px;font-size:12px;font-weight:600;color:var(--muted);cursor:pointer;font-family:'Heebo',sans-serif;transition:all .2s;}
+  .tpill.on{background:rgba(240,180,41,.2);border-color:rgba(240,180,41,.5);color:var(--gold);}
+
+  /* HOME */
+  .home-hero{text-align:center;padding:36px 0 24px;}
+  .home-hero .plane{font-size:56px;filter:drop-shadow(0 0 20px rgba(240,180,41,.5));margin-bottom:14px;display:block;}
+  .home-hero h2{font-size:28px;font-weight:900;margin-bottom:7px;background:linear-gradient(135deg,#fff,var(--gold));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;}
+  .home-hero p{font-size:14px;color:var(--muted);max-width:440px;margin:0 auto 26px;line-height:1.6;}
+  .mode-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:22px;}
+  .mcard{background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);border-radius:13px;padding:18px 14px;cursor:pointer;transition:all .2s;text-align:center;}
+  .mcard:hover{background:rgba(255,255,255,.09);transform:translateY(-2px);box-shadow:0 8px 22px rgba(0,0,0,.3);}
+  .mcard .mi{font-size:30px;margin-bottom:8px;display:block;}
+  .mcard h3{font-size:14px;font-weight:700;margin-bottom:4px;}
+  .mcard p{font-size:11px;color:var(--muted);line-height:1.4;}
+  .stat-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;}
+  .scard{background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:11px;padding:14px;text-align:center;}
+  .scard .n{font-size:26px;font-weight:900;color:var(--gold);}
+  .scard .n.g{color:var(--green);}.scard .n.r{color:var(--red);}.scard .n.b{color:var(--blue);}
+  .scard .l{font-size:11px;color:var(--muted);margin-top:3px;}
+
+  /* QUIZ LAYOUT */
+  .quiz-layout{display:grid;grid-template-columns:1fr 210px;gap:16px;align-items:start;}
+
+  /* SIDEBAR NAV */
+  .qnav{background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.09);border-radius:13px;padding:13px 11px;position:sticky;top:76px;max-height:calc(100vh - 96px);overflow-y:auto;}
+  .qnav::-webkit-scrollbar{width:3px;}
+  .qnav::-webkit-scrollbar-thumb{background:rgba(255,255,255,.15);border-radius:2px;}
+  .qnav-title{font-size:10px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.8px;margin-bottom:8px;padding-bottom:7px;border-bottom:1px solid rgba(255,255,255,.07);}
+  .qnav-legend{display:flex;flex-direction:column;gap:3px;margin-bottom:9px;font-size:10px;color:var(--muted);}
+  .qnav-legend-row{display:flex;align-items:center;gap:5px;}
+  .ldot{width:9px;height:9px;border-radius:50%;flex-shrink:0;}
+  .ldot.g{background:var(--green);}.ldot.r{background:var(--red);}.ldot.s{background:rgba(240,180,41,.6);}.ldot.u{background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.2);}
+  .qnav-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:4px;}
+  .qnb{aspect-ratio:1;border-radius:5px;border:1.5px solid rgba(255,255,255,.12);background:rgba(255,255,255,.05);color:var(--muted);font-family:'Heebo',sans-serif;font-size:10px;font-weight:700;cursor:pointer;transition:all .15s;display:flex;align-items:center;justify-content:center;}
+  .qnb:hover{border-color:rgba(96,165,250,.5);color:var(--white);}
+  .qnb.cur{border-color:var(--blue);background:rgba(96,165,250,.15);color:var(--white);}
+  .qnb.nc{background:rgba(34,197,94,.25);border-color:rgba(34,197,94,.5);color:#86efac;}
+  .qnb.nw{background:rgba(239,68,68,.22);border-color:rgba(239,68,68,.5);color:#fca5a5;}
+  .qnb.ns{background:rgba(240,180,41,.15);border-color:rgba(240,180,41,.4);color:var(--gold);}
+  .qnb.nbm{box-shadow:inset 0 0 0 2px var(--gold);}
+  .qnb.na{background:rgba(255,255,255,.18);border-color:rgba(255,255,255,.35);color:var(--white);}
+
+  /* STOPWATCH */
+  .sw-bar{display:flex;align-items:center;justify-content:space-between;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:9px;padding:8px 13px;margin-bottom:13px;}
+  .sw-time{font-size:22px;font-weight:800;font-variant-numeric:tabular-nums;letter-spacing:1px;color:var(--white);}
+  .sw-lbl{font-size:10px;color:var(--muted);font-weight:600;margin-bottom:2px;}
+  .sw-btns{display:flex;gap:5px;}
+  .sw-btn{background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.12);color:var(--white);border-radius:7px;padding:5px 10px;font-family:'Heebo',sans-serif;font-size:11px;font-weight:700;cursor:pointer;transition:all .15s;}
+  .sw-btn:hover{background:rgba(255,255,255,.14);}
+  .sw-btn.running{background:rgba(239,68,68,.18);border-color:rgba(239,68,68,.4);color:#fca5a5;}
+
+  /* PROGRESS */
+  .prog-wrap{background:rgba(255,255,255,.1);border-radius:999px;height:5px;margin-bottom:13px;overflow:hidden;}
+  .prog-fill{background:linear-gradient(90deg,var(--gold),#ffd700);height:100%;border-radius:999px;transition:width .4s ease;}
+  .q-meta{display:flex;justify-content:space-between;align-items:center;margin-bottom:11px;font-size:12px;color:var(--muted);}
+  .qnum-badge{background:linear-gradient(135deg,var(--gold),#ffd700);color:var(--sky);font-weight:800;font-size:10px;padding:3px 9px;border-radius:999px;}
+  .bm-btn{background:none;border:none;cursor:pointer;font-size:18px;transition:all .2s;padding:2px;}
+  .bm-btn:hover{transform:scale(1.1);}
+
+  /* QUESTION */
+  .qcard{background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);border-radius:13px;padding:20px 24px;margin-bottom:13px;backdrop-filter:blur(10px);}
+  .qtext{font-size:17px;font-weight:600;line-height:1.65;}
+
+  /* ANSWERS */
+  .ans-grid{display:flex;flex-direction:column;gap:7px;}
+  .ans-btn{background:rgba(255,255,255,.05);border:1.5px solid rgba(255,255,255,.12);border-radius:10px;padding:12px 15px;color:var(--white);font-family:'Heebo',sans-serif;font-size:14px;font-weight:500;text-align:right;cursor:pointer;transition:all .18s;display:flex;align-items:center;gap:10px;line-height:1.5;}
+  .ans-btn:hover:not(:disabled){background:rgba(96,165,250,.15);border-color:rgba(96,165,250,.4);transform:translateX(-2px);}
+  .aletter{width:26px;height:26px;min-width:26px;border-radius:50%;background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.2);display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;color:var(--muted);transition:all .18s;}
+  .ans-btn.correct{background:rgba(34,197,94,.15);border-color:rgba(34,197,94,.6);color:#86efac;}
+  .ans-btn.correct .aletter{background:var(--green);border-color:var(--green);color:white;}
+  .ans-btn.wrong{background:rgba(239,68,68,.12);border-color:rgba(239,68,68,.5);color:#fca5a5;}
+  .ans-btn.wrong .aletter{background:var(--red);border-color:var(--red);color:white;}
+  .ans-btn.show-correct{background:rgba(34,197,94,.08);border-color:rgba(34,197,94,.4);color:#86efac;}
+  .ans-btn:disabled{cursor:default;}
+
+  /* FEEDBACK */
+  .fb{display:none;margin-top:11px;padding:11px 15px;border-radius:9px;font-size:13px;font-weight:600;align-items:center;gap:8px;}
+  .fb.show{display:flex;}
+  .fb.ok{background:rgba(34,197,94,.15);border:1px solid rgba(34,197,94,.4);color:#86efac;}
+  .fb.no{background:rgba(239,68,68,.12);border:1px solid rgba(239,68,68,.4);color:#fca5a5;}
+
+  /* NOTE BOX */
+  .note-section{display:none;margin-top:9px;animation:fadeIn .3s ease;}
+  .note-section.show{display:block;}
+  @keyframes fadeIn{from{opacity:0;transform:translateY(-4px)}to{opacity:1;transform:translateY(0)}}
+  .note-box{background:rgba(96,165,250,.08);border:1px solid rgba(96,165,250,.2);border-radius:9px;padding:11px 14px;}
+  .note-box .nlbl{font-size:10px;font-weight:700;color:rgba(96,165,250,.6);text-transform:uppercase;letter-spacing:.6px;margin-bottom:4px;}
+  .note-box textarea{width:100%;background:transparent;border:none;outline:none;color:var(--blue);font-family:'Heebo',sans-serif;font-size:13px;resize:none;direction:rtl;line-height:1.6;}
+  .note-box textarea::placeholder{color:rgba(96,165,250,.4);}
+
+  /* NAV ROW */
+  .nav-row{display:flex;gap:7px;margin-top:13px;justify-content:space-between;align-items:center;}
+
+  /* TOP BAR */
+  .top-bar{display:flex;gap:6px;margin-bottom:13px;flex-wrap:wrap;}
+
+  /* RESULTS */
+  .res-hero{text-align:center;padding:32px 0 20px;}
+  .res-circle{width:148px;height:148px;border-radius:50%;margin:0 auto 16px;display:flex;flex-direction:column;align-items:center;justify-content:center;border:4px solid;}
+  .res-circle.pass{border-color:var(--green);background:rgba(34,197,94,.1);box-shadow:0 0 36px rgba(34,197,94,.2);}
+  .res-circle.fail{border-color:var(--red);background:rgba(239,68,68,.1);box-shadow:0 0 36px rgba(239,68,68,.2);}
+  .res-pct{font-size:38px;font-weight:900;line-height:1;}
+  .res-lbl{font-size:11px;color:var(--muted);margin-top:3px;}
+  .res-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:11px;margin:18px 0 22px;}
+  .rcard{background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);border-radius:11px;padding:15px;text-align:center;}
+  .rcard .n{font-size:28px;font-weight:800;}.rcard .l{font-size:11px;color:var(--muted);margin-top:3px;}
+  .rcard.g .n{color:var(--green);}.rcard.r .n{color:var(--red);}.rcard.b .n{color:var(--blue);}
+  .rev-filters{display:flex;gap:5px;margin-bottom:10px;flex-wrap:wrap;}
+  .rev-list{}
+  .rev-item{background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:9px;padding:12px 15px;margin-bottom:7px;cursor:pointer;transition:all .2s;}
+  .rev-item:hover{background:rgba(255,255,255,.07);}
+  .rev-item.ok{border-right:3px solid var(--green);}.rev-item.no{border-right:3px solid var(--red);}.rev-item.sk{border-right:3px solid var(--gold);}
+  .rev-hdr{display:flex;justify-content:space-between;align-items:flex-start;gap:9px;}
+  .rev-q{font-size:13px;font-weight:600;flex:1;line-height:1.4;}
+  .rbadge{font-size:10px;font-weight:700;padding:2px 8px;border-radius:999px;white-space:nowrap;}
+  .rbadge.ok{background:rgba(34,197,94,.2);color:#86efac;}.rbadge.no{background:rgba(239,68,68,.2);color:#fca5a5;}.rbadge.sk{background:rgba(240,180,41,.2);color:var(--gold);}
+  .rev-detail{display:none;margin-top:9px;padding-top:9px;border-top:1px solid rgba(255,255,255,.07);font-size:12px;line-height:1.6;}
+  .rev-detail.open{display:block;}
+  .ra{margin-bottom:3px;}.ra.wrong-a{color:#fca5a5;}.ra.right-a{color:#86efac;}.ra.note-a{color:var(--blue);margin-top:5px;font-style:italic;}
+
+  /* HISTORY */
+  .hist-list{display:flex;flex-direction:column;gap:7px;}
+  .hi{background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:9px;padding:12px 15px;display:flex;justify-content:space-between;align-items:center;}
+  .hi-score{font-size:22px;font-weight:900;}.hi-score.pass{color:var(--green);}.hi-score.fail{color:var(--red);}
+  .hi-meta{font-size:12px;color:var(--muted);margin-top:2px;}
+  .hi-detail{font-size:11px;color:var(--muted);text-align:left;}
+
+  /* EDITOR */
+  .ed-hdr{display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;}
+  .ed-title{font-size:18px;font-weight:800;}.ed-sub{font-size:12px;color:var(--muted);margin-top:2px;}
+  .ed-list{display:flex;flex-direction:column;gap:9px;}
+  .ei{background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:10px;overflow:hidden;}
+  .ei-hdr{padding:12px 15px;display:flex;justify-content:space-between;align-items:center;cursor:pointer;transition:background .2s;}
+  .ei-hdr:hover{background:rgba(255,255,255,.04);}
+  .ei-qnum{background:linear-gradient(135deg,var(--gold),#ffd700);color:var(--sky);font-weight:800;font-size:10px;padding:2px 8px;border-radius:999px;margin-left:8px;}
+  .ei-prev{font-size:13px;font-weight:600;flex:1;color:var(--white);line-height:1.4;}
+  .ei-arr{color:var(--muted);font-size:15px;transition:transform .2s;}
+  .ei.open .ei-arr{transform:rotate(180deg);}
+  .ei-form{display:none;padding:13px 15px 15px;border-top:1px solid rgba(255,255,255,.06);}
+  .ei.open .ei-form{display:block;}
+  .fg{margin-bottom:11px;}
+  .flbl{display:block;font-size:11px;font-weight:700;color:var(--muted);margin-bottom:4px;text-transform:uppercase;letter-spacing:.5px;}
+  .finput{width:100%;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.12);border-radius:7px;padding:8px 11px;color:var(--white);font-family:'Heebo',sans-serif;font-size:13px;outline:none;transition:border-color .2s;direction:rtl;}
+  .finput:focus{border-color:var(--gold);}
+  .ae{display:flex;flex-direction:column;gap:5px;}
+  .arow{display:flex;gap:6px;align-items:center;}
+  .arow input[type="radio"]{accent-color:var(--green);}
+  .ei-acts{display:flex;gap:6px;justify-content:flex-end;margin-top:11px;}
+  .add-q-btn{width:100%;background:rgba(240,180,41,.07);border:2px dashed rgba(240,180,41,.3);border-radius:10px;padding:13px;color:var(--gold);font-family:'Heebo',sans-serif;font-size:13px;font-weight:700;cursor:pointer;transition:all .2s;margin-top:9px;}
+  .add-q-btn:hover{background:rgba(240,180,41,.14);border-color:rgba(240,180,41,.6);}
+
+  /* TOAST */
+  .toast{position:fixed;bottom:18px;right:18px;background:rgba(34,197,94,.92);color:white;padding:9px 16px;border-radius:8px;font-weight:700;font-size:13px;transform:translateY(70px);opacity:0;transition:all .3s;z-index:999;}
+  .toast.show{transform:translateY(0);opacity:1;}
+
+  @media(max-width:700px){
+    .quiz-layout{grid-template-columns:1fr;}
+    .qnav{position:static;max-height:130px;}
+    .qnav-grid{grid-template-columns:repeat(9,1fr);}
+    .mode-grid{grid-template-columns:repeat(2,1fr);}
+    .stat-grid{grid-template-columns:repeat(2,1fr);}
+    .hdr-right .pill:last-child{display:none;}
+  }
+</style>
+</head>
+<body>
+
+<div class="hdr">
+  <div class="hdr-title">
+    <span class="hdr-icon">✈️</span>
+    <div class="hdr-text">
+      <h1>ביצועי אנוש</h1>
+      <p>פלטפורמת הכנה למבחן תיאורטי מסחרי</p>
+    </div>
+  </div>
+  <div class="hdr-right">
+    <div class="pill">שאלות: <span id="hdr-total">47</span></div>
+    <div class="pill">ניקוד: <span id="hdr-score">—</span></div>
+  </div>
+</div>
+
+<div class="tabs">
+  <button class="tab on" onclick="showTab('home')">🏠 בית</button>
+  <button class="tab" onclick="showTab('quiz')">📝 תרגול</button>
+  <button class="tab" onclick="showTab('history')">📊 היסטוריה</button>
+  <button class="tab" onclick="showTab('editor')">✏️ עריכה</button>
+</div>
+
+<!-- HOME -->
+<div class="page on wrap" id="page-home">
+  <div class="home-hero">
+    <span class="plane">✈️</span>
+    <h2>מוכן לטיסה?</h2>
+    <p>התכונן למבחן התיאורטי ברשות התעופה האזרחית. תרגל שאלות, עקוב אחר ההתקדמות ושפר את ביצועיך.</p>
+    <p style="font-size:12px;color:var(--gold);opacity:0.8;margin-top:-16px;">הבנק בבנייה על ידי סער והוא בהרצה</p>
+  </div>
+  <div class="mode-grid">
+    <div class="mcard" onclick="openCountModal('all')"><span class="mi">🎯</span><h3>כל השאלות</h3><p>לפי הסדר</p></div>
+    <div class="mcard" onclick="openCountModal('random')"><span class="mi">🔀</span><h3>סדר אקראי</h3><p>לחיקוי מבחן אמיתי</p></div>
+    <div class="mcard" onclick="startQuiz('mock')"><span class="mi">📋</span><h3>מבחן מדומה</h3><p>30 שאלות עם ציון</p></div>
+    <div class="mcard" onclick="startQuiz('wrong')"><span class="mi">🔁</span><h3>שאלות שטעיתי</h3><p>חיזוק נקודות חולשה</p></div>
+    <div class="mcard" onclick="startQuiz('bookmarks')"><span class="mi">🔖</span><h3>מסומנות</h3><p>שאלות שסימנת לחזרה</p></div>
+    <div class="mcard" onclick="startQuiz('unanswered')"><span class="mi">🆕</span><h3>טרם נוסו</h3><p>שאלות שלא ניסית עדיין</p></div>
+  </div>
+  <div class="stat-grid">
+    <div class="scard"><div class="n" id="h-total">47</div><div class="l">סה"כ שאלות</div></div>
+    <div class="scard"><div class="n g" id="h-correct">0</div><div class="l">✅ נכון</div></div>
+    <div class="scard"><div class="n r" id="h-wrong">0</div><div class="l">❌ שגוי</div></div>
+    <div class="scard"><div class="n b" id="h-bm">0</div><div class="l">🔖 מסומן</div></div>
+  </div>
+</div>
+
+<!-- QUIZ -->
+<div class="page wrap" id="page-quiz">
+  <div class="quiz-layout">
+    <div>
+      <div class="top-bar">
+        <button class="tpill on" id="p-shuffle" onclick="toggleOpt('shuffle')">🔀 ערבוב</button>
+        <button class="tpill" id="p-qnum" onclick="toggleOpt('qnum')">🔢 מס׳ שאלה</button>
+        <button class="tpill on" id="p-timer" onclick="toggleOpt('timer')">⏱ טיימר</button>
+      </div>
+
+      <div class="sw-bar" id="sw-bar">
+        <div>
+          <div class="sw-lbl">⏱ זמן שחלף</div>
+          <div class="sw-time" id="sw-disp">00:00</div>
+        </div>
+        <div class="sw-btns">
+          <button class="sw-btn" id="sw-tog" onclick="swToggle()">▶ התחל</button>
+        </div>
+      </div>
+      <div id="mock-timer-bar" style="display:none;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:9px;padding:8px 13px;margin-bottom:13px;">
+        <div style="display:flex;justify-content:space-between;align-items:center;">
+          <div>
+            <div class="sw-lbl">⏳ זמן שנותר</div>
+            <div class="sw-time" id="mock-disp" style="color:var(--gold);">60:00</div>
+          </div>
+          <div id="mock-warn" style="font-size:11px;font-weight:700;color:rgba(239,68,68,.8);display:none;">⚠️ פחות מ-10 דקות!</div>
+        </div>
+        <div style="margin-top:6px;height:4px;background:rgba(255,255,255,.08);border-radius:2px;overflow:hidden;">
+          <div id="mock-prog-fill" style="height:100%;background:var(--gold);border-radius:2px;transition:width 1s linear;width:100%;"></div>
+        </div>
+      </div>
+
+      <div class="prog-wrap"><div class="prog-fill" id="prog" style="width:0%"></div></div>
+
+      <div class="q-meta">
+        <span id="qctr">שאלה 1 מתוך 47</span>
+        <div style="display:flex;align-items:center;gap:7px">
+          <button class="bm-btn" id="bmbtn" onclick="toggleBm()" title="סמן לחזרה" style="filter:grayscale(1)">🔖</button>
+          <span class="qnum-badge" id="qnbadge" style="display:none">מס׳ 1</span>
+        </div>
+      </div>
+
+      <div class="qcard"><div class="qtext" id="qtext"></div></div>
+      <div class="ans-grid" id="ans-grid"></div>
+      <div class="fb" id="fb"><span id="fb-ico"></span><span id="fb-txt"></span></div>
+
+      <div class="note-section" id="note-sec">
+        <div class="note-box">
+          <div class="nlbl">💡 הערה אישית</div>
+          <textarea id="note-inp" rows="3" placeholder="הוסף הערה, מנמוניקה או הסבר לעצמך..."></textarea>
+        </div>
+      </div>
+
+      <div class="nav-row">
+        <button class="btn btn-ghost" onclick="prevQ()">→ קודם</button>
+        <div style="display:flex;gap:6px;align-items:center">
+          <button class="btn btn-note" onclick="toggleNote()">💡 הערה</button>
+          <button class="btn btn-skip" onclick="skipQ()">דלג ▶</button>
+          <button class="btn btn-gold" id="next-btn" onclick="nextQ()" style="display:none">הבא ←</button>
+          <button class="btn btn-gold" id="fin-btn" onclick="finishQuiz()" style="display:none">סיים 🏁</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- NAVIGATOR SIDEBAR -->
+    <div class="qnav">
+      <div class="qnav-title">🗺 מקרא שאלות</div>
+      <div class="qnav-legend">
+        <div class="qnav-legend-row"><span class="ldot g"></span> נענה נכון</div>
+        <div class="qnav-legend-row"><span class="ldot r"></span> נענה שגוי</div>
+        <div class="qnav-legend-row"><span class="ldot s"></span> דולג</div>
+        <div class="qnav-legend-row"><span class="ldot u"></span> טרם נענה</div>
+      </div>
+      <div class="qnav-grid" id="qnav-grid"></div>
+    </div>
+  </div>
+</div>
+
+<!-- RESULTS -->
+<div class="page wrap" id="page-results">
+  <div class="res-hero">
+    <div class="res-circle" id="res-circle">
+      <div class="res-pct" id="res-pct">0%</div>
+      <div class="res-lbl" id="res-verdict"></div>
+    </div>
+    <h2 id="res-title" style="font-size:20px;font-weight:800;margin-bottom:4px"></h2>
+    <p id="res-sub" style="font-size:13px;color:var(--muted)"></p>
+    <p id="res-time" style="font-size:12px;color:var(--muted);margin-top:3px"></p>
+  </div>
+  <div class="res-grid">
+    <div class="rcard g"><div class="n" id="rc">0</div><div class="l">✅ נכון</div></div>
+    <div class="rcard r"><div class="n" id="rw">0</div><div class="l">❌ שגוי</div></div>
+    <div class="rcard b"><div class="n" id="rs">0</div><div class="l">⏭ דולג</div></div>
+  </div>
+  <div style="display:flex;gap:8px;margin-bottom:18px">
+    <button class="btn btn-gold" onclick="restartQ()" style="flex:1">▶ תרגל שוב</button>
+    <button class="btn btn-ghost" onclick="showTab('home')" style="flex:1">🏠 בית</button>
+  </div>
+  <h3 style="font-size:14px;font-weight:700;margin-bottom:9px;color:var(--muted)">סקירת תשובות</h3>
+  <div class="rev-filters">
+    <button class="tpill on" onclick="filterRev('all',this)">הכל</button>
+    <button class="tpill" onclick="filterRev('wrong',this)">שגויות</button>
+    <button class="tpill" onclick="filterRev('correct',this)">נכונות</button>
+    <button class="tpill" onclick="filterRev('skipped',this)">דולגו</button>
+  </div>
+  <div class="rev-list" id="rev-list"></div>
+</div>
+
+<!-- HISTORY -->
+<div class="page wrap" id="page-history">
+  <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px">
+    <div><div style="font-size:18px;font-weight:800">📊 היסטוריית מבחנים</div><div style="font-size:12px;color:var(--muted);margin-top:2px">תוצאות כל המבחנים שביצעת</div></div>
+    <button class="btn btn-skip" onclick="clearHist()">נקה הכל</button>
+  </div>
+  <div class="hist-list" id="hist-list"><div style="text-align:center;padding:40px;color:var(--muted);font-size:14px">עוד לא ביצעת מבחנים. התחל לתרגל!</div></div>
+</div>
+
+<!-- EDITOR -->
+<div class="page wrap" id="page-editor">
+  <div class="ed-hdr">
+    <div><div class="ed-title">✏️ עריכת שאלות</div><div class="ed-sub">לחץ על שאלה לפתיחה ועריכה</div></div>
+    <button class="btn btn-gold" onclick="exportQ()">💾 ייצוא JSON</button>
+  </div>
+  <div class="ed-list" id="ed-list"></div>
+  <button class="add-q-btn" onclick="addNewQ()">+ הוסף שאלה חדשה</button>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+const LETTERS=['א','ב','ג','ד','ה','ו'];
+const MODE_NAMES={all:'כל השאלות',random:'אקראי',mock:'מדומה',wrong:'שגויות',bookmarks:'מסומנות',unanswered:'טרם נוסו'};
+
+let QUESTIONS=[{"num": 1, "q": "הגברת האוטומציה ומכשור ה- ''Glass cockpit'' גורמים ל:", "answers": ["התרחקות מסידור ה- T המסורתי של מכשירי הטיסה העיקריים", "סיבוך יתר של פריסת מכשירי הטיסה העיקריים", "יתירות למכשירי הטיסה העיקריים", "ריכוז מכשירי ה- T המסורתי במסך אחד"], "correct": "ריכוז מכשירי ה- T המסורתי במסך אחד"}, {"num": 2, "q": "עבודה בסביבה רוטטת משפיעה על:", "answers": ["העיניים, האוזניים ועלולה להיות קטלנית", "העיניים, האוזניים המשפיעות על המערכת הווסקולרית", "הראייה והתפקוד הפסיכו-מטרי", "מעברי האוויר באף ותפקוד הראייה"], "correct": "הראייה והתפקוד הפסיכו-מטרי"}, {"num": 3, "q": "מה מבין הגורמים הבאים הנו הגורם הנפוץ ביותר למחלת לב כלילית?", "answers": ["היסטוריה משפחתית", "לחץ דם גבוה", "השמנה", "עישון"], "correct": "היסטוריה משפחתית"}, {"num": 4, "q": "התהליך התפיסתי יוצר מודל פנימי של העולם החיצון. מודל זה מבוסס על:", "answers": ["המידע המסופק על ידי החושים, הנסיון והציפיות שלנו", "המידע המדויק ביותר המסופק על ידי חושינו", "הנסיון שלנו", "הנסיון והציפיות שלנו בלבד"], "correct": "המידע המסופק על ידי החושים, הנסיון והציפיות שלנו"}, {"num": 5, "q": "בטיסה בתנאי ראות לקויה עקב אד, ערפל, או שלג טייסים עשויים לחוות אשליה שמשמעותה:", "answers": ["אובייקטים מופיעים כאילו הם קרובים יותר משהם באמת", "אובייקטים מופיעים כאילו הם נעים מהר יותר משהם באמת", "אובייקטים מופיעים כאילו הם רחוקים יותר משהם באמת", "אובייקטים מופיעים כאילו הם נעים לאט יותר משהם באמת"], "correct": "אובייקטים מופיעים כאילו הם רחוקים יותר משהם באמת"}, {"num": 6, "q": "מי מהניסוחים הבאים מבטא בצורה הטובה ביותר את המושג ''לחץ'' (Stress)?", "answers": ["הערכת אדם את הדרישות ממנו ויכולתו הפיזיולוגית לעמוד בהן", "הערכת אדם את הדרישות ממנו ויכולתו הפסיכולוגית לעמוד בהן", "מבחן טיסה חשוב", "הערכת אדם את הדרישות ממנו והאופן בו הוא תופס את יכולתו להתמודד עם דרישות אלה"], "correct": "הערכת אדם את הדרישות ממנו והאופן בו הוא תופס את יכולתו להתמודד עם דרישות אלה"}, {"num": 7, "q": "איזה ארבעה גורמים משפיעים על ראיית לילה?", "answers": ["גיל, אלכוהול, גובה טיסה ועישון", "גיל, גובה טיסה, תאורת מכשירים ועישון", "תאורת מכשירים, אלכוהול, גובה טיסה ועישון", "גיל, אלכוהול, גובה טיסה ותאורת מכשירים"], "correct": "גיל, אלכוהול, גובה טיסה ועישון"}, {"num": 8, "q": "מעשנים ילקו בהיפוקסיה:", "answers": ["בגובה תא גבוה יותר מאשר לא מעשנים", "בגובה תא נמוך יותר מאשר לא מעשנים", "מעשנים ולא מעשנים לקו בהיפוקסיה באותו גובה תא", "עישון, הגם שהוא גורם נזק בדרכים אחרות, מקטין את השפעות ההיפוקסיה"], "correct": "בגובה תא נמוך יותר מאשר לא מעשנים"}, {"num": 9, "q": "אדם השש להעמיד את רעיונותיו למבחן הנו:", "answers": ["תיאורטיקן", "פרגמטי", "פעלטן", "הוזה"], "correct": "פרגמטי"}, {"num": 10, "q": "יש לצייד את המטוס בחמצן נוסף בכל טיסה בה הלחץ אטמוספירי מתחת:", "answers": ["500 hPa", "hPa 700", "800 hPa", "600 hPa"], "correct": "hPa 700"}, {"num": 11, "q": "המנהיג האידיאלי הנו:", "answers": ["יוצר יחסים חבריים על סיפון המטוס ומקדיש תשומת לב למשימה", "מגלה דאגה רבה להתנהלות הטיסה ומצפה מאחרים להיענות לכל גחמה שלו", "אכפת לו אך מעט מהמשימה ומאנשי צוותו", "מממש את סמכויותיו באופן שממקסם את הכבוד והמחויבות של שאר חברי הצוות"], "correct": "מממש את סמכויותיו באופן שממקסם את הכבוד והמחויבות של שאר חברי הצוות"}, {"num": 12, "q": "דוגמא לחוסר שינה מצבי (Situational insomnia) היא:", "answers": ["דפוסי שינה מופרעים", "הפרעה בשנת חלום (REM)", "הפרעה בשנת גל איטי", "יעפת (Jet leg)"], "correct": "יעפת (Jet leg)"}, {"num": 13, "q": "שיעור התאונות הנובעות מטעות אנוש מתוך כלל גורמי התאונות הנו:", "answers": ["50%- 40%", "0%", "10%- 5%", "75%- 65%"], "correct": "75%- 65%"}, {"num": 14, "q": "הקנים (Rods) והמדוכים (Cons) הנם התאים הרגישים לאור בעין. הקנים (Rods):", "answers": ["משמשים לראיית לילה ולזיהוי תנועה צדית", "משמשים רק לראיית לילה", "משמשים בעיקר לראייה במשקפיים", "רגישים לשינוי צבע ולתנועה צדית"], "correct": "משמשים לראיית לילה ולזיהוי תנועה צדית"}, {"num": 15, "q": "מהי סינרגיה בתוך הצוות?", "answers": ["התאמה התנהגותית הקשורה לדה- סינכרוניזציה של הפעולות המתואמות", "פעולה בלתי מתואמת של אנשי הצוות להשגת יעד משותף", "פעולה מתואמת של של כל אנשי הצוות להשגת יעד משותף, כאשר הביצוע המשותף הנו טוב יותר מסכום הביצועים הנפרדים של אנשי הצוות", "הפעולה המתואמת של ביצועים אישיים בלתי קשורים להשגת משימה חריגה"], "correct": "פעולה מתואמת של של כל אנשי הצוות להשגת יעד משותף, כאשר הביצוע המשותף הנו טוב יותר מסכום הביצועים הנפרדים של אנשי הצוות"}, {"num": 16, "q": "בחר מבין הרשומים מטה את יסודות המזון מהם לוקח הגוף את האנרגיה ויטמנים", "answers": ["כל התשובות נכונות", "1, 4", "1, 3", "2, 3"], "correct": "2, 3"}, {"num": 17, "q": "התנהגות מבוססת ידע הנה:", "answers": ["התפתחה מחוקים ומיומנויות מוכוונות סימפטומים", "משתמשת בתבנית של תכניות תנועה", "דורשת מהטייס להעריך מידע ואחר להשתמש בידע שלו ובניסיונו", "נרכשת באמצעות התמקדות במיומנות מסוימת"], "correct": "דורשת מהטייס להעריך מידע ואחר להשתמש בידע שלו ובניסיונו"}, {"num": 18, "q": "בחר את המשפט הנכון:", "answers": ["זיכרון ארוך טווח מחולק לזיכרון קצר טווח וזיכרון פעיל. הראשון הוא זכירה של עובדות והשני הוא זכירה של מאורעות", "זיכרון ארוך טווח מחולק לזיכרון אפיזודי ולזיכרון סמנטי. הראשון הוא זכירה של עובדות והשני הוא זכירה של נתונים (Data)", "זיכרון ארוך טווח מחולק לזיכרון אפיזודי ולזיכרון סמנטי. הראשון הוא זכירה של עובדות והשני הוא זכירה של מאורעות", "זיכרון ארוך טווח מחולק לזיכרון סמנטי ולזיכרון אפיזודי. הראשון הוא זכירה של עובדות והשני הוא זכירה של מאורעות"], "correct": "זיכרון ארוך טווח מחולק לזיכרון סמנטי ולזיכרון אפיזודי. הראשון הוא זכירה של עובדות והשני הוא זכירה של מאורעות"}, {"num": 19, "q": "מהו אחד התבחינים (אינדיקטורים) הראשונים להיפוקסיה?", "answers": ["גוון כחול לשפתיים", "התכווצויות בבטן", "כאב במרפקים", "שיפוט פגום"], "correct": "שיפוט פגום"}, {"num": 20, "q": "יש נטייה טבעית לבחור רק עובדות אובייקטיביות לצורך קבלת החלטות", "answers": ["1, 2, 4", "1, 2", "3, 4", "1, 2, 3"], "correct": "1, 2, 3"}, {"num": 21, "q": "כיצד משפיעים תנאים של אד או ערפל על שיפוט הטייס בגישה לנחיתה?", "answers": ["הערכת חסר של הטווח למסלול כתוצאה מאשליה שיוצרת זכוכית התא", "הערכת חסר של הטווח למסלול כתוצאה מעמעום התאורות", "הערכת יתר של הטווח למסלול כתוצאה מאשליה שיוצרת זכוכית התא", "הערכת יתר של הטווח למסלול כתוצאה מעמעום התאורות"], "correct": "הערכת יתר של הטווח למסלול כתוצאה מעמעום התאורות"}, {"num": 22, "q": "הגברת האוטומציה ומכשור ה- Glass cokpit:", "answers": ["הסיר מצוות המטוס את הצורך לעקוב איש אחר פעולת רעהו בתפעול רגיל", "מאפשרים הסתמכות על הטייס האוטומטי ומשחררים את שני אנשי הצוות לבצע משימות משניות בתפעול רגיל", "גרם להפחתה בצורך של שני הטייסים לעקוב איש אחר פעולת רעהו בתפעול רגיל", "עדיין מחייבים את צוות המטוס לעקוב איש אחר פעולות ובחירות רעהו בתפעול רגיל"], "correct": "עדיין מחייבים את צוות המטוס לעקוב איש אחר פעולות ובחירות רעהו בתפעול רגיל"}, {"num": 23, "q": "הגורם החשוב ביותר בגישה לניהול לחץ הוא:", "answers": ["עריכת תכנית פעולה להתמודדות עם כל בעיה", "זיהוי תגובות הלחץ והתמודדות איתן אחת אחר השנייה", "זיהוי שיש בעיה והחלטה לעשות משהו בעניינה", "זיהוי גורמי לחץ וטיפול בהם אחד אחר השני"], "correct": "זיהוי שיש בעיה והחלטה לעשות משהו בעניינה"}, {"num": 24, "q": "הגוף יכול לסבול תאוצות קצרות- משך כדלהלן:", "answers": ["45 G בציר קדימה- אחורה ו- 25 G בציר הרוחבי", "45 G בציר האנכי ו- 25 G בציר הרוחבי", "45 G בציר קדימה- אחורה ו- 25 G בציר האנכי", "45 G בציר הרוחבי והאחורי ו- 25 G בציר האנכי"], "correct": "45 G בציר קדימה- אחורה ו- 25 G בציר האנכי"}, {"num": 25, "q": "מיעוט חום בגוף (היפו- תרמיה) גורם ל:", "answers": ["ירידה בצריכת החמצן", "אף אחת מהתשובות אינה נכונה", "עלייה בצריכת החמצן", "עלייה בצריכת דו תחמוצת הפחמן"], "correct": "עלייה בצריכת החמצן"}, {"num": 26, "q": "שיפור ההיחלצות מטעויות אנוש והשלכותיהן", "answers": ["2, 3, 4", "1, 2, 4", "1, 2", "3, 4"], "correct": "1, 2, 4"}, {"num": 27, "q": "אם אדם מתעורר משינה מוקדם, איך משפיע הדבר על דפוס מחזור השינה הבא?", "answers": ["הוא ייכנס ל''גירעון שינה'' ויזדקק ליותר זמן שינה במחזור השינה הבא", "הוא ייכנס ל''גירעון שינה'' ויזדקק לתוספת שינה במשך כפול מזה שהחסיר", "משך שינה רגיל יחפה על ''גירעון השינה'' שנוצר", "הוא ייכנס ל''גירעון שינה'' אותו יישא בכל מצב לטווח זמן ארוך"], "correct": "הוא ייכנס ל''גירעון שינה'' ויזדקק ליותר זמן שינה במחזור השינה הבא"}, {"num": 28, "q": "במקרה של חשד להיפר- וונטילציה הפעולה הנכונה לביצוע היא:", "answers": ["להפחית את קצב הנשימה ולהגדיל את עומק הנשימה", "להגביר את קצב הנשימה ולהפחית את עומק הנשימה", "להגדיל את קצב ועומק הנשימה", "להפחית את קצב ועומק הנשימה"], "correct": "להפחית את קצב ועומק הנשימה"}, {"num": 29, "q": "מצב שגיאה (Mode error) משויך ל:", "answers": ["זיכרון קצר טווח", "אוטומציה", "מתוכנת מוטורית", "עיבוד מידע אישי"], "correct": "אוטומציה"}, {"num": 30, "q": "בחירת הרגע להפעלת המדפים בכפוף למצב ולתנאים בנחיתה הנה:", "answers": ["התנהגות מבוססת כללים", "התנהגות מבוססת ידע", "התנהגות מבוססת מיומנות", "התנהגות מבוססת לחץ"], "correct": "התנהגות מבוססת מיומנות"}, {"num": 31, "q": "מהו ייעודה של ''תעלת אבסטכיוס''?", "answers": ["להעביר גלי קול דרך האוזן התיכונה לעצב הבקרה", "לאפשר השוואת לחצים בין שני צדי עור התוף", "לאפשר השוואת לחצים בצד האוזן התיכונה של עור התוף", "לאפשר השוואת לחצים משני צדי המנגנון הווסטיבולארי"], "correct": "לאפשר השוואת לחצים בין שני צדי עור התוף"}, {"num": 32, "q": "מהו הזמן המזערי המוחלט שבו חייב טייס להפסיק לשתות לפני טיסה?", "answers": ["6 שעות, אבל זה תלוי בכמות האלכוהול שנצרך", "24 שעות, אבל זה תלוי בכמות האלכוהול שנצרך", "12 שעות, אבל זה תלוי בכמות האלכוהול שנצרך", "8 שעות, אבל זה תלוי בכמות האלכוהול שנצרך"], "correct": "8 שעות, אבל זה תלוי בכמות האלכוהול שנצרך"}, {"num": 33, "q": "הדרך הטובה ביותר להוריד משקל היא:", "answers": ["להשתמש במדכאי תיאבון", "הרבה ספורט", "''דיאטות רצח''", "לאכול פחות"], "correct": "לאכול פחות"}, {"num": 34, "q": "מה המגבלות לטיסה לאחר צלילה עם ציוד צלילה?", "answers": ["אין לטוס משך 48 שעות עם עומק הצלילה עלה על 40 רגל. בכל מקרה אחר המגבלה היא 12 שעות", "אין לטוס משך 48 שעות עם עומק הצלילה עלה על 30 רגל. בכל מקרה אחר המגבלה היא 24 שעות", "אין לטוס משך 12 שעות עם עומק הצלילה הגיע ל- 30 רגל. בכל מקרה אחר המגבלה היא 24 שעות", "אין לטוס משך 24 שעות עם עומק הצלילה עלה על 30 רגל. בכל מקרה אחר המגבלה היא 12 שעות"], "correct": "אין לטוס משך 24 שעות עם עומק הצלילה עלה על 30 רגל. בכל מקרה אחר המגבלה היא 12 שעות"}, {"num": 35, "q": "טייס המבצע גישת נחיתה למסלול בעל שיפוע עולה יקבל רמזים חזותיים שיגרמו לו להאמין כי המטוס:", "answers": ["נמוך מקו הגלישה ולאחר תיקון ייגע ''אנדרשוט''", "גבוה מקו הגלישה ולאחר תיקון ייגע ''אנדרשוט''", "נמוך מקו הגלישה ולאחר תיקון ייגע ''אוברשוט''", "גבוה מקו הגלישה ולאחר תיקון ייגע ''אוברשוט''"], "correct": "גבוה מקו הגלישה ולאחר תיקון ייגע ''אנדרשוט''"}, {"num": 36, "q": "על פי שימוש נוסחת ה BMI. באיזה נתון ייחשב טייס כבעל משקל יתר?", "answers": ["30 לגבר, 28 לאישה", "26 לגבר, 29 לרישה", "30 לגבר, 29 לאישה", "32 לגבר, 26 לאישה"], "correct": "30 לגבר, 29 לאישה"}, {"num": 37, "q": "האזנה אקטיבית מתקיימת כאשר המאזין:", "answers": ["מתייחס בגישה שיפוטית לעמדות אנשי הצוות האחרים, מעריך את קבילותן ובהתאם מקבל או דוחה אותן", "מגלה גישה פסיבית כך שעמדות אנשי הצוות האחרים מתקבלות ללא ערעור", "מגלה עניין כן והבנה לרגשות ולתפיסות האחר", "מגיב בטון ווכחני במאמץ לכפות את דעתו שלו על האחר"], "correct": "מגלה עניין כן והבנה לרגשות ולתפיסות האחר"}, {"num": 38, "q": "ארבעת המרכיבים של מודל SHEL הנם:", "answers": ["Software, Hardware, Environment and Liveware"], "correct": "Software, Hardware, Environment and Liveware"}, {"num": 39, "q": "גלאוקומה נגרמת כתוצאה מ:", "answers": ["גידול בלחץ הפנים- עיני", "קיטון בלחץ הפנים- עיני", "ליקוי בקרנית", "ליקוי ברשתית"], "correct": "גידול בלחץ הפנים- עיני"}, {"num": 40, "q": "הדרכת (Crew Resources Management) CRM:", "answers": ["מיועדת אך ורק לשינוי אישיותו של האדם", "מיועדת לקדם את האפקטיביות של עבודת הצוות על ידי שיפור התייחסותו לבטיחות טיסה ולניהול יחסי אנוש", "מיועדת במיוחד לטייסים בעלי הפרעות אישיות או גישות לא ראויות", "לא מיועדת כלל לשנות את התיחסותו של הטייס"], "correct": "מיועדת לקדם את האפקטיביות של עבודת הצוות על ידי שיפור התייחסותו לבטיחות טיסה ולניהול יחסי אנוש"}, {"num": 41, "q": "מידת הלחץ שאנחנו חווים משפיעה הן על הרגשתנו והן על יכולתנו לבצע משימות, וכן:", "answers": ["יש להמנע מלחץ כי הוא עלול להוביל להתמוטטות", "כל לחץ ישפיע באופן שלילי על יכולותינו", "לחץ במידה קטנה עשוי להשפיע באופן חיובי על יכולותינו", "לחץ או גירוי מוגברים משפרים את יכולותינו"], "correct": "לחץ במידה קטנה עשוי להשפיע באופן חיובי על יכולותינו"}, {"num": 42, "q": "איזה מבין הפעולות שלהלן מבוצעות ביתר יעילות על ידי אדם מאשר על ידי מערכות אוטומטיות? 1.קבלת החלטות איכותיות 2.צפייה לתופעות לא שכיחות 3.פיקוח לוידוא שערכים מסוימים לא ייחצו 4.איתור מצבים לא שכיחים", "answers": ["3, 4", "1, 2", "2, 3, 4", "1, 4"], "correct": "1, 4"}, {"num": 43, "q": "מספר הפריטים שאדם ממוצע יכול להחזיק בזיכרון פעיל הנו:", "answers": ["7", "10-20", "5", "9"], "correct": "7"}, {"num": 44, "q": "סריקת ראייה של השמיים צריכה להיעשות תוך חפיפה בין גזרתית של:", "answers": ["°5", "°10", "°15", "°20"], "correct": "°10"}, {"num": 45, "q": "איך החמצן מועבר בתוך הגוף?", "answers": ["ע\"י כדוריות הדם האדומות, בשילוב עם דו תחמוצת הפחמן", "ע\"י כדוריות הדם האדומות, בשילוב עם חנקן ואדי מים", "ע\"י כדוריות הדם האדומות, בשילוב עם המוגלובין", "ע\"י כדוריות הדם האדומות, בשילוב עם חנקן, הורמונים ופלזמה"], "correct": "ע\"י כדוריות הדם האדומות, בשילוב עם המוגלובין"}, {"num": 46, "q": "לחץ דם גבוה:", "answers": ["הגורם לשיגדון (Gout)", "לחץ דם עורקי גבוה", "מצב של עומס גבוה", "סימן מקדים לאוטם שריר הלב"], "correct": "לחץ דם עורקי גבוה"}, {"num": 47, "q": "גשם על השמשה הקדמית במהלך הגישה לנחיתה ייצור אשליה של טיסה:", "answers": ["מהר מהרגיל", "גבוה מהרגיל", "נמוך מהרגיל", "איטי מהרגיל"], "correct": "נמוך מהרגיל"}, {"num": 48, "q": "אחד מתפקידי האוזן הפנימית הנו:", "answers": ["לספק מערכת חיסון לאוזן", "לזהות נזק מרעש לתעלות הקשתית", "לזהות תאוצה קווית וזוויתית", "לחבר את האוזן למעברי האוויר באף"], "correct": "לזהות תאוצה קווית וזוויתית"}, {"num": 49, "q": "רמת הטמפרטורה והלחות הנוחה לרוב האנשים היא:", "answers": ["20°C ו-60%-40% לחות", "25°C ו-70%-50% לחות", "15°C ו-30%-20% לחות", "20°C ו-40%-30% לחות"], "correct": "20°C ו-60%-40% לחות"}, {"num": 50, "q": "על מה צריך טייס להסתמך במקרה של אובדן התמצאות בתנאים מטאורולוגים המחייבים טיסת מכשירים (IMC)?", "answers": ["ראייה", "לסובב את הראש מצד לצד כדי להיחלץ מאי-התמצאות", "חוש שיווי המשקל", "מכשירי המטוס"], "correct": "מכשירי המטוס"}, {"num": 51, "q": "שיטת סריקת ראייה צריכה להיות שונה בין יום ללילה:", "answers": ["נכון", "לא נכון"], "correct": "נכון"}, {"num": 52, "q": "היפוקסיה משפיעה על ראיית לילה:", "answers": ["נכון", "לא נכון"], "correct": "נכון"}, {"num": 53, "q": "כאשר עוצמת תאורת מסלול מוגברת באופן משמעותי במהלך הגישה לנחיתה המסלול ייראה כאילו הוא:", "answers": ["קצר יותר", "קרוב יותר", "ארוך יותר", "רחוק יותר"], "correct": "קרוב יותר"}, {"num": 54, "q": "מדוע קור עושה אותך יותר רגיש להיפוקסיה?", "answers": ["קצב הלב מהיר יותר והוא צורך יותר חמצן", "כאשר רועדים מקור נדרשת יותר אנרגיה ולכן נצרך יותר חמצן", "הקור מוריד את חום הגוף וזה הופך אותו לפחות יעיל", "הקור מוריד את חום הגוף ובמיוחד של הראש, באופן שמחליש את המוח"], "correct": "כאשר רועדים מקור נדרשת יותר אנרגיה ולכן נצרך יותר חמצן"}, {"num": 55, "q": "איזה מהמשפטים הבאים נכון בהקשר למוטיבציה?", "answers": ["מוטיבציה נמוכה מבטיחה יכולות מספיקות של ניהול חלוקת הקשב", "מוטיבציה גבוהה מדי עלולה לגרום לעודף ערנות וכתוצאה מכך ירידה בקשב", "מוטיבציה גבוהה ביותר בשילוב עם לחץ מוגבר יגבילו את יכולות ניהול חלוקת הקשב", "מוטיבציה מקטינה את הביצוע האוטומטי של המשימה"], "correct": "מוטיבציה גבוהה ביותר בשילוב עם לחץ מוגבר יגבילו את יכולות ניהול חלוקת הקשב"}, {"num": 56, "q": "בטיסה בלילה חשוך מעל קרקע ללא מאפיינים ייחודיים ומסלול נחיתה מואר במלואו:", "answers": ["המסלול ייראה קרוב יותר משהוא באמת והמטוס נמוך יותר משהוא באמת", "המסלול ייראה רחוק משהוא באמת והמטוס גבוה יותר משהוא באמת", "המסלול ייראה רחוק משהוא באמת והמטוס נמוך יותר משהוא באמת", "המסלול ייראה קרוב יותר משהוא באמת והמטוס גבוה יותר משהוא באמת"], "correct": "המסלול ייראה קרוב יותר משהוא באמת והמטוס נמוך יותר משהוא באמת"}, {"num": 57, "q": "הגברת האמינות הטכנית והאוטומציה עשויה לגרום ל:", "answers": ["הפחתת המודעות המצבית כתוצאה מהסתמכות יתר על המערכות 'שלעולם אינן כושלות'", "גידול בעומס העבודה על הטייס באופן שמקטין את מודעתו המצבית", "הקטנת עומס העבודה על הטייס באופן שמאפשר גידול במודעות המצבית", "אף אחת מהאמירות שלמעלה אינה נכונה, שכן, לטייס יכולת מולדת לקיים מודעות מצבית בכל עת"], "correct": "הפחתת המודעות המצבית כתוצאה מהסתמכות יתר על המערכות 'שלעולם אינן כושלות'"}, {"num": 58, "q": "טייס משתמש ברמזים חזותיים לסיוע בביצוע נחיתה. כשהגישה היא מעל מים על הטייס לבסס את השיפוט שלו על רוחב המסלול. אם המסלול צר משהניח הטייס, הטייס עשוי לפרש זאת:", "answers": ["הטווח למסלול גדול משהוא באמת ולכן יגיע לנקודת הנגיעה מוקדם משציפה", "הטווח למסלול קטן משהוא באמת ולכן יגיע לנקודת הנגיעה מוקדם משציפה", "הטווח למסלול גדול משהוא באמת ולכן יגיע לנקודת הנגיעה מאוחר משציפה", "הטווח למסלול קטן משהוא באמת ולכן יגיע לנקודת הנגיעה מאוחר משציפה"], "correct": "הטווח למסלול גדול משהוא באמת ולכן יגיע לנקודת הנגיעה מוקדם משציפה"}, {"num": 59, "q": "כאשר טייס מכבה מנוע בהתבסס על רשימת תיוג הוא מציג:", "answers": ["התנהגות מבוססת מיומנות", "התנהגות מבוססת ידע", "חשיבה מצומצמת (רדוקטיבית)", "התנהגות מבוססת כללים"], "correct": "התנהגות מבוססת כללים"}, {"num": 60, "q": "היפר-וונטילציה היא נשימת יתר שגורמת לשינוי:", "answers": ["במאזן ה-CO2 בגוף", "במאזן ה-CO בגוף", "במאזן החנקן בגוף", "במאזן ה-O2 בגוף"], "correct": "במאזן ה-CO2 בגוף"}, {"num": 61, "q": "הצטננות קשה עלולה לגרום לחסימת סינוסים ואוזניים. מצב זה ידוע כ:", "answers": ["ברוטראומה אוזנית", "שפעת", "ברוטראומה", "ברוטראומה סינוסית"], "correct": "ברוטראומה"}, {"num": 62, "q": "בחר את המשפט הנכון בהקשר לטעויות:", "answers": ["מעידה (Slip) נגרמת בדרך כלל בתנאי מתח נמוך", "מעידה מעולם לא נגרמת כתוצאה מהרגל", "מעידה מתרחשת כאשר נשלח מידע שגוי", "מעידה אין לה כל השפעה על תקשורת"], "correct": "מעידה (Slip) נגרמת בדרך כלל בתנאי מתח נמוך"}, {"num": 63, "q": "מודעות מצבית (Situational awareness) הנה:", "answers": ["וידוא שהטייס מקיים מודל מנטאלי מדויק של הסביבה החיצונית לתא", "וידוא שהטייס מקיים מודל מנטאלי מדויק של הסביבה במסגרת זמן ומקום מסוימים", "וידוא שהטייס יודע בכל עת מה קורה עם שאר אנשי הצוות", "וידוא שהטייס מקיים מודל מנטאלי מדויק של הסביבה בתוך תא הטייס"], "correct": "וידוא שהטייס מקיים מודל מנטאלי מדויק של הסביבה במסגרת זמן ומקום מסוימים"}, {"num": 64, "q": "הגדלת האוטומציה גרמה ל:", "answers": ["שום שינוי משמעותי בעומס העבודה של הטייס", "הפחתה בעומס העבודה של הטייס, באופן שמגדיל את יכולתו להתמודד עם דרישות המשימה", "גידול בעומס העבודה של הטייס, באופן שמקטין את יכולתו להתמודד עם דרישות המשימה", "דרך חלופית לבצע את המשימות אשר מותירה יותר משאבי קשב לביצוע המשימות"], "correct": "דרך חלופית לבצע את המשימות אשר מותירה יותר משאבי קשב לביצוע המשימות"}, {"num": 65, "q": "טעויות אנוש יכולות להיות מסווגות כ:", "answers": ["טעויות של פקודה והשמטה", "טעויות של הסמכה וביצוע", "טעויות של הסמכה והשמטה", "טעויות של פקודה וביצוע"], "correct": "טעויות של פקודה והשמטה"}, {"num": 66, "q": "דאגות ביתיות:", "answers": ["לעולם לא יגרמו לחץ", "מוגבלות לסביבה הביתית", "מסייעות לטייס להגיב ביתר ביטחון ללחצים אחרים", "תמיד יגרמו לחץ מסוים"], "correct": "תמיד יגרמו לחץ מסוים"}, {"num": 67, "q": "דום נשימה בשינה (Apnoea) הוא:", "answers": ["הליכה מתוך שינה", "הפסקת נשימה בעת שינה שעשויה להימשך עד 10 שניות", "צורה של קושי בהירדמות הנובע ממצב לא נוח לשינה", "התעוררות תכופה במהלך הלילה"], "correct": "הפסקת נשימה בעת שינה שעשויה להימשך עד 10 שניות"}, {"num": 68, "q": "לאחר חילוף אזורי זמן מקצבי הגוף:", "answers": ["מסתגלים במהירות לאזור הזמן הדרוש", "מסתגלים במהירות אם הטייס טס מזרחה", "מסתגלים לאט בקצב של 1-1.5 שעה לשבוע", "מסתגלים לאט בקצב של 1-1.5 שעה ליום"], "correct": "מסתגלים לאט בקצב של 1-1.5 שעה ליום"}, {"num": 69, "q": "זמן הכרה יעילה משוער בגובה 18,000 רגל הנו:", "answers": ["40 דק'", "30 דק'", "10 דק'", "20 דק'"], "correct": "20 דק'"}, {"num": 70, "q": "ההשפעות של עישון במיוחד בהקשר לתעופה הנן:", "answers": ["הופעה מוקדמת של היפוקסיה וירידה בראיית לילה", "הופעה מוקדמת של היפוקסיה כתוצאה מעלייה ניכרת בגובה", "הופעה מוקדמת של היפוקסיה כתוצאה מעלייה ניכרת בגובה עד לגובה מרבי של 40,000 רגל", "הופעה מוקדמת של היפוקסיה וסיכון מוגבר ללקות באנמיה"], "correct": "הופעה מוקדמת של היפוקסיה וירידה בראיית לילה"}, {"num": 71, "q": "טייס המודע לפגיעה משמעותית בבריאותו אשר פוגעת בתפקודו כאיש צוות אוויר:", "answers": ["מושעה מיידית מטיסה וחייב להודיע לרת\"א תוך 21 יום. יוכל לחזור לטיסה רק לאחר בדיקה רפואית", "חייב להודיע מיידית לרת\"א", "חייב להודיע לרת\"א אחרי 21 יום", "מושעה מיידית מטיסה וחייב להודיע לרת\"א תוך 21 יום"], "correct": "מושעה מיידית מטיסה וחייב להודיע לרת\"א תוך 21 יום"}, {"num": 72, "q": "מיקוד העין מושג על ידי:", "answers": ["הגומה המרכזית (Fovea) והרשתית", "הקרנית והעדשה", "העדשה והרשתית", "הרשתית והאישון"], "correct": "הקרנית והעדשה"}, {"num": 73, "q": "רוחב המסלול עליו אתה רגיל לנחות הוא 45 מ'. כאשר אתה טס לשדה בו רוחב המסלול הנו 30 מ' עלול להיגרם:", "answers": ["גישה נמוכה ו'אוברשוט'", "גישה גבוהה ו'אנדרשוט'", "גישה גבוהה ו'אוברשוט'", "גישה נמוכה ו'אנדרשוט'"], "correct": "גישה גבוהה ו'אנדרשוט'"}, {"num": 74, "q": "הלחות היחסית לנוחות אופטימאלית הנה:", "answers": ["30%-60%", "40%-60%", "30%-40%", "5%"], "correct": "40%-60%"}, {"num": 75, "q": "השגיאות הנובעות מסיווג לא רציונלי במדרג פעולות קשורות לחוסר תיאום בין:", "answers": ["גורם אנושי לסביבה", "גורם אנושי לגורם אנושי", "גורם אנושי לתכנה", "גורם אנושי לחומרה"], "correct": "גורם אנושי לתכנה"}, {"num": 76, "q": "טייס חש כאב אוזניים חמור בהנמכה. מה הסיבה האפשרית לכך?", "answers": ["חסימה באוזן החיצונית", "ברוטראומה סינוטית", "חסימה באוזן התיכונה", "חסימה באוזן הפנימית"], "correct": "חסימה באוזן התיכונה"}, {"num": 77, "q": "איך משפיעה תופעת 'החור השחור' על שיפוט הטייס בגישה לנחיתה?", "answers": ["הערכת יתר של הגובה", "הערכת חסר של הגובה", "נטייה לבצע את הגישה במהירות מופרזת", "נטייה לבצע את הגישה במהירות גבוהה מהרגיל"], "correct": "הערכת חסר של הגובה"}, {"num": 78, "q": "טייס עשוי לחוות תופעת הטייה כוזבת (Leans):", "answers": ["בכל זמן בטיסה", "רק בלילה", "רק בטיסת מכשירים", "רק בטיסת ראייה"], "correct": "בכל זמן בטיסה"}, {"num": 79, "q": "תכנית מוטורית היא:", "answers": ["פעולה שגרתית המבוססת על ידע וניסיון", "פעולה שגרתית הבאה לידי ביטוי רק כאשר מיושמת תגובה", "פעולה שגרתית הנרכשת בתרגול ויכולה להתבצע ללא חשיבה מודעת", "פעולה שגרתית הנסמכת על ניסיון בלבד"], "correct": "פעולה שגרתית הנרכשת בתרגול ויכולה להתבצע ללא חשיבה מודעת"}, {"num": 80, "q": "במצבי לחץ גבוה מאוד:", "answers": ["דפוס דגימת המידע נפגע", "הטייס סוקר את המכשירים בתדירות נמוכה יותר", "טייסים היו רוצים ששוב יהיו לצדם נווטים", "הטייס מסוגל לעמוד טוב יותר בעומס עבודה גבוה"], "correct": "דפוס דגימת המידע נפגע"}, {"num": 81, "q": "כאשר טייס בגישה סופית לנחיתה רואה את המסלול כאילו הוא רחב יותר משהוא באמת, אחת התוצאות עשויה להיות:", "answers": ["הוא יוריד את מהירות חציית הסף מאוחר מדי", "המטוס ייגע במסלול מאוחר משהטייס ציפה", "המטוס ייגע במסלול מוקדם משהטייס ציפה", "הטייס יבחר נקודת נגיעה רחוקה יותר על המסלול"], "correct": "המטוס ייגע במסלול מוקדם משהטייס ציפה"}, {"num": 82, "q": "במטוס מסחרי במצב רגיל עומד לחץ התא על גובה לחץ:", "answers": ["פני הים", "6000-8000 רגל", "10,000 רגל", "מתחת 5000 רגל"], "correct": "6000-8000 רגל"}, {"num": 83, "q": "התנהגות מבוססת חוקים יכולה להיות מוגדרת כ:", "answers": ["הליך שגרתי או נוהלי שנלמד", "הליך הנסמך על פעולות שגרה המאוחסנות בזיכרון ומבוצעות ללא חשיבה מודעת", "הליך שאינו מתבסס על נוהל קיים ומחייב את הטייס להעריך מידע", "הליך המבוסס על דפוסי פעולות מוטוריות המאוחסנים בזיכרון"], "correct": "הליך שגרתי או נוהלי שנלמד"}, {"num": 84, "q": "מה נכון בהתייחס לעישון וטיסה?", "answers": ["ירידה בסיבולת ל-G", "עלייה בסיכון למחלות לב", "פחות חמצן יכול להיות מובל בדם בגלל הזיקה בין ההמוגלובין ל-CO", "תשובות 1, 2, ו-3 נכונות"], "correct": "תשובות 1, 2, ו-3 נכונות"}, {"num": 85, "q": "באיזה קצב מסלק הגוף אלכוהול מתוכו?", "answers": ["בערך 1.5 יחידות בשעה", "בערך 2 יחידות בשעה", "בערך 2.5 יחידות בשעה", "בערך 1 יחידות בשעה"], "correct": "בערך 1 יחידות בשעה"}, {"num": 86, "q": "רמה גבוהה של מוטיבציה קשורה ל:", "answers": ["רמה גבוהה של עוררות", "רמה גבוהה של שאננות", "שאננות", "מונוטניות"], "correct": "רמה גבוהה של עוררות"}, {"num": 87, "q": "מעל איזה גובה יש צורך באספקת חמצן נוספת אם התא אינו מדוחס?", "answers": ["33,700 רגל", "18,000 רגל", "40,000 רגל", "10,000 רגל"], "correct": "10,000 רגל"}, {"num": 88, "q": "צוות שמגיב באופן מיטבי לאירועים לא רק מתקשר היטב אלא גם:", "answers": ["מודע לשיקולים תרבותיים", "מודע למצב חבריו", "מלוכד", "מאשר באופן שיטתי קבלת מידע"], "correct": "מאשר באופן שיטתי קבלת מידע"}, {"num": 89, "q": "במקרה של חוסר התמצאות מרחבית במהלך טיסה בתוך ענן:", "answers": ["הסתמך על חוש הראייה שלך", "עבור מיד לטיסה על פי חיווי המכשירים ובנוסף היעזר ברמזים ראייתיים", "הסתמך על חיווי המכשירים בלבד", "האץ את מטוסך כדי לצאת בהקדם מהענן"], "correct": "הסתמך על חיווי המכשירים בלבד"}, {"num": 90, "q": "איזה ויטמין חיוני לקרישת הדם?", "answers": ["ויטמין K", "ויטמין B", "ויטמין D", "ויטמין C"], "correct": "ויטמין K"}, {"num": 91, "q": "חוסר ויטמין A עשוי לגרום:", "answers": ["עיוורון לילה", "אובדן שיער", "כאבי ראש", "אובדן או התרופפות שיניים"], "correct": "עיוורון לילה"}, {"num": 92, "q": "אירוע צפוי להיתפס כמלחיץ כאשר הוא נתפס כ:", "answers": ["התפיסה אינה משפיעה על הלחץ כי לחץ תלוי בעצם האירוע", "שינוי בחיים מכל סוג, בין אם חיובי או שלילי", "שינוי שלילי בחיים", "שינוי חיובי בחיים"], "correct": "שינוי בחיים מכל סוג, בין אם חיובי או שלילי"}, {"num": 93, "q": "שבץ מוחי מתרחש כאשר:", "answers": ["אספקת הדם לאזור מסוים במוח מתנתקת", "אספקת הדם לחלק מסוים במחזור הדם מתנתקת", "אספקת הדם לחלק מסוים של הלב מתנתקת", "אספקת הדם לחלק מסוים של הגוף מתנתקת"], "correct": "אספקת הדם לאזור מסוים במוח מתנתקת"}, {"num": 94, "q": "אווירה של אי-התערבות בתא הטייס (Laissez-faire cockpit) עשויה להתקיים כאשר:", "answers": ["ביצועי הצוות יורדים כתוצאה מחולשת מנהיגות של הקברניט", "טייס המשנה עסוק בדברים אחרים ונהיה תוקפני", "מורל הצוות גבוה עקב התנהלות חברית של הקברניט", "הקברניט נתון בלחץ ומתנהג בצורה שתלטנית"], "correct": "ביצועי הצוות יורדים כתוצאה מחולשת מנהיגות של הקברניט"}, {"num": 95, "q": "טייס זהיר ימנע מטיסה לאחר צריכת כמות קטנה של אלכוהול למשך:", "answers": ["12 שעות", "8 שעות", "24 שעות", "6 שעות"], "correct": "12 שעות"}, {"num": 96, "q": "חשיפה לאטמוספירה קרה בגובה רב במהלך דה-קומפרסיה מהירה תגרום:", "answers": ["הגדלת ביקוש הטייס לחמצן", "הגברת סיכויי הטייס לפתח היפר-וונטילציה", "הקטנת ביקוש הטייס לחמצן", "לא תשפיע על ביקוש הטייס לחמצן"], "correct": "הגדלת ביקוש הטייס לחמצן"}, {"num": 97, "q": "דריכות יתר (Hyper-vigilance) הנה:", "answers": ["מצב של שעמום", "מצב של פניקה", "מצב של רמת סוכר נמוכה בדם", "מצב של עייפות"], "correct": "מצב של פניקה"}, {"num": 98, "q": "המוטיבציה היא תכונה הנחשבת כחיונית בעבודת הטייס. איזה מהמשפטים הבאים נכון?", "answers": ["מוטיבציה מופרזת מלחיצה את הטייס ומנחיתה את ביצועיו", "מוטיבציה מפחיתה את עצמת האשליות החושיות", "רמה גבוהה של מוטיבציה מפצה על חוסר ידע בתחום הבטיחות", "רמה גבוהה של מוטיבציה מפחיתה את רמת הערנות"], "correct": "מוטיבציה מופרזת מלחיצה את הטייס ומנחיתה את ביצועיו"}, {"num": 99, "q": "איזה טכניקת הסתכלות יש ליישם בחיפוש מטוס?", "answers": ["סריקה בעיניים של מלוא שדה הראייה מצד לצד", "סריקת השמיים גזרה אחר גזרה משמאל לימין", "מיקוד המבט בגזרות של 10°", "שימוש ברצף של תנועות עיניים קטנות ומהירות"], "correct": "שימוש ברצף של תנועות עיניים קטנות ומהירות"}, {"num": 100, "q": "הסתגלות לחושך לוקחת לתאי הקנים ולתאי החרוטים זמן, בהתאמה:", "answers": ["30 דקות ו-7 דקות", "7 דקות ו-30 דקות", "15 דקות ו-20 דקות", "25 דקות ו-45 דקות"], "correct": "30 דקות ו-7 דקות"}, {"num": 101, "q": "איזה חלק מהספקטרום משקפי שמש צריך לסנן?", "answers": ["הקצה האדום והאולטרה-סגול", "הקצה הכחול והאולטרה-סגול", "כל אור בעל עוצמה גבוהה", "אולטרה-סגול בלבד"], "correct": "הקצה הכחול והאולטרה-סגול"}, {"num": 102, "q": "מהי תכנית מוטורית?", "answers": ["מיומנות שניתן לפרקה למרכיביה ולהתאימה לכל מקרה", "סדרה של הוראות עצביות המועברות לקבוצות השרירים הגדולות בגוף", "קטע של זיכרון עבודה אשר ניתן לשפר על ידי פריסה לנתחים", "סדרה של פעולות אשר דורשות מעט או בכלל לא תשומת לב במהלך ביצוען"], "correct": "סדרה של פעולות אשר דורשות מעט או בכלל לא תשומת לב במהלך ביצוען"}, {"num": 103, "q": "בחר את האמירה המתאימה לגבי ניהול אוטומציה:", "answers": ["המחשב תמיד טועה", "הבנה איך לגשת לדפים השונים של מערכת ניהול טיסה (FMS)", "המחשב תמיד צודק", "מאפשרת שימוש ופרשנות נכונים של מידע הטיסה המסופק על ידי מערכות אוטומטיות"], "correct": "מאפשרת שימוש ופרשנות נכונים של מידע הטיסה המסופק על ידי מערכות אוטומטיות"}, {"num": 104, "q": "מה הפעולה הראשונה שעל הטייס לעשות במקרה של דקומפרסיה בתא הטייס מעל 10,000 רגל?", "answers": ["להנמיך מהר ככל האפשר", "להצמיד מסכת חמצן ולבדוק זרימת החמצן", "להזהיר את הנוסעים", "להנמיך ולבדוק את הנוסעים"], "correct": "להצמיד מסכת חמצן ולבדוק זרימת החמצן"}, {"num": 105, "q": "היפוטנציה (Hypotension) הנה:", "answers": ["לחץ דם גבוה", "קצב דופק גבוה", "לחץ דם נמוך", "קצב דופק נמוך"], "correct": "לחץ דם נמוך"}, {"num": 106, "q": "טייס חייב להמתין לפחות 24 שעות לפני שיעלה לטיסה לאחר תרומת דם:", "answers": ["נכון", "לא נכון"], "correct": "נכון"}, {"num": 107, "q": "מהו מרווח הזמן המזערי בין צלילה (במים) לבין טיסה אחריה?", "answers": ["המרווח תלוי בסוג הטיסה שתתקיים לאחר הצלילה", "לא נדרש מרווח זמן אם לא היה שימוש באוויר דחוס", "12 שעות", "24 שעות"], "correct": "12 שעות"}, {"num": 108, "q": "כיצד משפיעה שתיית אלכוהול לפני שינה על דפוס השינה?", "answers": ["כמות קטנה מרגיעה את הגוף ומשפרת את דפוס השינה", "מאריכה את שלב ה-REM ואת משך השינה כולה", "מקצרת את שלב ה-REM ואת משך השינה כולה", "אין לכך השפעה על דפוס השינה"], "correct": "מקצרת את שלב ה-REM ואת משך השינה כולה"}, {"num": 109, "q": "טייסת שנכנסת להריון:", "answers": ["אינה רשאית להמשיך לטוס", "יכולה לחזור לטיסה חודש לאחר תום ההריון", "יכולה לטוס עד השבוע ה-24 להריון", "יכולה לטוס רק באישור רת\"א"], "correct": "יכולה לטוס עד השבוע ה-24 להריון"}, {"num": 110, "q": "בהתייחס לאוטומציה איזה מהמשפטים הבאים נכון?", "answers": ["אוטומציה מפחיתה את השאננות והשעמום", "אוטומציה מסירה את הגורם האנושי מרמת הביצועים", "אוטומציה מסייעת ליכולות התפעול", "אוטומציה אינה גורמת לתאונות"], "correct": "אוטומציה מסייעת ליכולות התפעול"}, {"num": 111, "q": "מהי רמת צריכת האלכוהול השבועית שגורמת לנזק בריאותי?", "answers": ["22 יחידות לגבר, 14 יחידות לאישה", "21 יחידות לגבר, 15 יחידות לאישה", "24 יחידות לגבר, 14 יחידות לאישה", "21 יחידות לגבר, 14 יחידות לאישה"], "correct": "21 יחידות לגבר, 14 יחידות לאישה"}, {"num": 112, "q": "נשימה היא:", "answers": ["חילוף גזי הנשימה O2 ו-CO2 בין הסביבה לרקמות הגוף", "אספקת O2 מהריאות לרקמות הגוף", "חילוף גזי הנשימה O2 ו-CO2 בין הריאות לרקמות הגוף", "הפיכת O2 ל-CO2"], "correct": "חילוף גזי הנשימה O2 ו-CO2 בין הסביבה לרקמות הגוף"}, {"num": 113, "q": "מדוע חיוני להבטיח שמחממי בעירה פועלים באופן תקין?", "answers": ["כדי למנוע הרעלת דו-תחמוצת הפחמן והתלקחות אש", "כדי למנוע הרעלת דו-תחמוצת הפחמן והתלקחות אש או התפוצצות", "כדי למנוע הרעלת פחמן חד-חמצני", "כדי למנוע התלקחות אש"], "correct": "כדי למנוע הרעלת פחמן חד-חמצני"}, {"num": 114, "q": "חיסרון מהותי בהגברת האוטומציה הוא:", "answers": ["אין רווח הניתן להערכה בביצוע הכלכלי", "הסרת הגורם האנושי מהביצועים השגרתיים", "צוות הטיסה עלול להיות שאנן", "צמצום גודל הצוות"], "correct": "צוות הטיסה עלול להיות שאנן"}, {"num": 115, "q": "מי מהבאים הוא התורם המרכזי לשלמות ההתמצאות המרחבית?", "answers": ["האברונים הפרופריוצפטיביים", "מערכת שיווי המשקל", "האוזניים", "העיניים"], "correct": "העיניים"}, {"num": 116, "q": "בהתייחס לזיכרון קצר טווח ניתן לומר שהוא:", "answers": ["מכיל מידע יומיומי לשימוש מיידי והוא מוגבל בקיבולת האחסון", "מכיל בעיקר מידע נוהלי", "מכיל מידע בעניינים מהותיים בעלי משמעות ארוכת טווח", "מהווה צורה יציבה של זיכרון עבודה ולכן איננו רגיש להפרעות"], "correct": "מכיל מידע יומיומי לשימוש מיידי והוא מוגבל בקיבולת האחסון"}, {"num": 117, "q": "טייס שוקל 80 ק\"ג וגובהו 175 ס\"מ. מה ה-BMI שלו?", "answers": ["24, עודף משקל", "26, עודף משקל", "20, תת משקל", "26, תקין"], "correct": "26, עודף משקל"}, {"num": 118, "q": "שני סוגי העייפות הם:", "answers": ["קצרת משך ומדכאת", "מדכאת ושלילית", "כבדה וקלה", "כרונית וקצרת טווח"], "correct": "כרונית וקצרת טווח"}, {"num": 119, "q": "אורך ראייה נגרם על-ידי:", "answers": ["גלגל עין ארוך מהנורמה", "עדשה קצרה מהנורמה", "גלגל עין קצר מהנורמה", "עדשה ארוכה מהנורמה"], "correct": "גלגל עין קצר מהנורמה"}, {"num": 120, "q": "מדוע התראת שמע הנה השיטה הטובה ביותר להתריע לטייס על מצבי חירום?", "answers": ["הזיכרון הפעיל הנו מוגבל ומערכת השמע מושכת את תשומת הלב יותר מאשר גירוי חזותי", "הזיכרון השמיעתי לא מגורה", "הזיכרון הסמנטי והזיכרון האפיזודי הם קצרי טווח", "הזיכרון האפיזודי יכול לשמור גירויים למשך 2-8 שניות בלבד"], "correct": "הזיכרון הפעיל הנו מוגבל ומערכת השמע מושכת את תשומת הלב יותר מאשר גירוי חזותי"}, {"num": 121, "q": "אם שני מטוסים נמצאים בביות על קו קבוע זה כלפי זה מה צפוי לקרות?", "answers": ["תלוי אם זה קורה ביום או בלילה", "הם יתנגשו", "הם יחלפו בטווח קרוב ('כמעט ונפגע')", "זה בטיחותי למדי והם יחלפו בטווח ביניהם"], "correct": "הם יתנגשו"}, {"num": 122, "q": "כמה אימון גופני הנו מספיק כדי להוריד סיכון של מחלת לב כלילית?", "answers": ["אימון רגיל וכן העלאת הדפק ב-100% למשך לפחות 20 דקות 2 פעמים בשבוע", "העלאת הדפק ב-100% למשך לפחות 20 דקות 3 פעמים בשבוע", "העלאת הדפק ב-100% למשך לפחות 30 דקות 3 פעמים בשבוע", "אימון רגיל וכן העלאת הדפק ב-100% למשך לפחות 20 דקות 3 פעמים בשבוע"], "correct": "העלאת הדפק ב-100% למשך לפחות 30 דקות 3 פעמים בשבוע"}, {"num": 123, "q": "התנהגות המבוססת על חוקים כמו זו הנדרשת בגישת מכשירים:", "answers": ["מאוחסנת בזיכרון קצר טווח", "משוננת על-ידי מקבל ההחלטות המרכזי", "מאוחסנת בזיכרון ארוך טווח", "משוננת כתכנית מוטורית"], "correct": "מאוחסנת בזיכרון ארוך טווח"}, {"num": 124, "q": "אחוז נפח החמצן (O2) באטמוספירה בגובה פני הים הנו:", "answers": ["40%", "15%", "21%", "78%"], "correct": "21%"}, {"num": 125, "q": "שימוש בשפת גוף על סיפון המטוס נעשה:", "answers": ["כאשר חל איסור במגע", "כאשר חל איסור להשתמש בהבעות פנים", "כתוסף לתקשורת דיבור", "רק כשהקברניט חרש"], "correct": "כתוסף לתקשורת דיבור"}, {"num": 126, "q": "תגובה ללחץ נחווית על ידי האדם כ:", "answers": ["תגובה פסיכו-מוטורית ופסיכולוגית", "תגובה פסיכודלית ופסיכית", "תגובות פיזיולוגיות ונפשיות", "תגובות פיזיולוגיות ופסיכיאטריות"], "correct": "תגובות פיזיולוגיות ונפשיות"}, {"num": 127, "q": "איזו מההתנסויות הבאות תגרום לרמת הלחץ הגבוהה ביותר?", "answers": ["שינוי משמעותי בבריאות", "פציעה אישית", "מוות של בת/בן-זוג או שותף לחיים", "מוות של קרוב משפחה"], "correct": "מוות של בת/בן-זוג או שותף לחיים"}, {"num": 128, "q": "הטייס הממוצע נוטה להיות:", "answers": ["יציב ומוחצן", "חרד ומופנם", "חרד ומוחצן", "יציב ומופנם"], "correct": "יציב ומוחצן"}, {"num": 129, "q": "הסיכוי ללקות בדום נשימה בשינה גבוה יותר אצל אנשים:", "answers": ["בעלי משקל נמוך ההולכים בשנתם", "בעלי משקל נמוך שנוחרים", "בעלי עודף משקל המדברים בשנתם", "בעלי עודף משקל שנוחרים"], "correct": "בעלי עודף משקל שנוחרים"}, {"num": 130, "q": "איזה מהפעולות הבאות הנה התנהגות מבוססת מיומנות?", "answers": ["ביצוע פנייה מתואמת בהטייה של 30°", "ידיעה כי פריס היא בירת צרפת", "ביצוע פעולת מנע להיווצרות התקרחות על-פי רשימת תיוג", "השיקול היכן לפנות לשדה משנה לאחר אש במנוע"], "correct": "ביצוע פנייה מתואמת בהטייה של 30°"}, {"num": 131, "q": "אילו תנאי גישה לנחיתה גורמים לתופעת 'החור השחור' (Black hole effect)?", "answers": ["נחיתה בלילה בגשם כבד או גשם מעורב בשלג", "נחיתה בלילה על מסלול מואר חלקית", "נחיתה בלילה עם תאורת המכשירים חזקה מדי", "נחיתה בלילה כאשר אין אורות לאורך נתיב הגישה"], "correct": "נחיתה בלילה כאשר אין אורות לאורך נתיב הגישה"}, {"num": 132, "q": "רעש זמני עלול לגרום נזק של כמה שעות לאוזניים ורעש מתמשך עלול לגרום נזק קבוע. הנזק מוערך באמצעות:", "answers": ["מידת הנזק לעצמות השמע ולעור התוף", "מידת עוצמת הרעש", "משך החשיפה לרעש", "תשובות 2 ו-3 נכונות"], "correct": "תשובות 2 ו-3 נכונות"}, {"num": 133, "q": "האם טייס רשאי לטוס עם עדשות מגע בי-פוקאל?", "answers": ["כן", "כן, אם קיבל אישור מרופא תעופתי מוסמך", "כן, אם קיבל אישור לכך מרת\"א", "לא"], "correct": "כן, אם קיבל אישור מרופא תעופתי מוסמך"}, {"num": 134, "q": "מנהיג לא אפקטיבי נוטה:", "answers": ["להקשיב יותר לאחרים", "להיות עקבי וישיר", "להפגין שליטת יתר בכל המצבים שצצים ולהימנע מעימותים", "להיות סרקסטי וישיר"], "correct": "להפגין שליטת יתר בכל המצבים שצצים ולהימנע מעימותים"}, {"num": 135, "q": "מהי דרך הפעולה המומלצת כאשר נתקלים במהלך טיסה בסערת ברקים?", "answers": ["להוריד את המשקף מטה", "לכבות את תאורת תא הטייס", "להגביר את תאורת תא הטייס למקסימום", "להרכיב משקפי שמש, אם זמינים"], "correct": "להגביר את תאורת תא הטייס למקסימום"}, {"num": 136, "q": "המנגנון הווסטיבולרי מסייע לגוף ב:", "answers": ["שמירת התמצאות במרחב", "שמירת התמצאות ראייתית", "לשמוע כראוי", "לשלוט במחלת התנועה"], "correct": "שמירת התמצאות במרחב"}, {"num": 137, "q": "מודעות מצבית עשויה להתרסן באופן משמעותי כתוצאה מיישום:", "answers": ["סיפון טיסה 'אינטליגנטי'", "מכשירי הקלטה", "רשימות תיוג מכניות", "טייס שלישי"], "correct": "רשימות תיוג מכניות"}, {"q": "מיקומם ותפקודם של ארבעת תאי הלב הנם כדלקמן:", "answers": ["הפרוזדור בצד ימין והחדרים בצד שמאל. הצד הימני מזרים דם עני בחמצן לריאות והצד השמאלי מזרימו לגוף", "הפרוזדור משמאל והחדרים מימין. הצד הימני מזרים דם עני בחמצן לריאות והצד השמאלי מזרימו לגוף", "הפרוזדורים הנם ימני ושמאלי והחדרים הנם ימני ושמאלי. הצד הימני מזרים דם עני בחמצן מתאי הגוף לריאות לצורך העשרתו בחמצן והצד השמאלי מקבל דם עשיר בחמצן מהריאות ומזרימו לגוף", "הפרוזדורים הנם ימני ושמאלי והחדרים הנם ימני ושמאלי. הצד השמאלי מזרים דם עני בחמצן מתאי הגוף לריאות לצורך העשרתו בחמצן והצד הימני מקבל דם עשיר בחמצן מהריאות ומזרימו לגוף"], "correct": "הפרוזדורים הנם ימני ושמאלי והחדרים הנם ימני ושמאלי. הצד הימני מזרים דם עני בחמצן מתאי הגוף לריאות לצורך העשרתו בחמצן והצד השמאלי מקבל דם עשיר בחמצן מהריאות ומזרימו לגוף", "num": 138}, {"q": "אלו מהבאים קשורים להטיית (Bias) תהליך קבלת החלטות? 1.חוויה אישית נוטה לשנות את תפיסת הסיכון 2.יש נטייה טבעית לדבוק בהחלטה שקיבלנו גם אם העובדות סותרות אותה 3.הקבוצה אליה משתייך מקבל ההחלטה נוטה להשפיע על החלטה 4.יש נטייה טבעית לבחור רק עובדות אובייקטיביות", "answers": ["1, 2, 3", "1, 2, 4", "1, 3, 4", "2, 3, 4"], "correct": "1, 2, 3", "num": 139}, {"q": "אם ידוע כי בשדה מסוים צפויה אשליית ראייה, כקברניט המטוס עליך:", "answers": ["לא לומר דבר כי זה עלול להבהיל את הצוות", "לוודא שתדרכת את הצוות", "לדווח למרכז המבצעים של חברתך כדי שגם צוותים אחרים יהיו מודעים לסכנה", "לדווח להנהלת החברה כדי שגם צוותים אחרים יהיו מודעים לסכנה"], "correct": "לוודא שתדרכת את הצוות", "num": 140}];
+
+// STATE
+let QQ=[],ci=0,UA={};
+let bookmarks=new Set(JSON.parse(localStorage.getItem('bm')||'[]'));
+let notes=JSON.parse(localStorage.getItem('notes')||'{}');
+let wrongH=new Set(JSON.parse(localStorage.getItem('wh')||'[]'));
+let corrH=new Set(JSON.parse(localStorage.getItem('ac')||'[]'));
+let hist=JSON.parse(localStorage.getItem('sh')||'[]');
+let curMode='all';
+let opts={shuffle:true,qnum:false,timer:true};
+let swSec=0,swRunning=false,swInt=null;
+const MOCK_TOTAL=3600;
+let mockRemain=MOCK_TOTAL,mockInt=null;
+
+// ── STOPWATCH ──
+function swTick(){swSec++;const m=String(Math.floor(swSec/60)).padStart(2,'0'),s=String(swSec%60).padStart(2,'0');document.getElementById('sw-disp').textContent=m+':'+s;}
+function swToggle(){
+  if(swRunning){clearInterval(swInt);swRunning=false;document.getElementById('sw-tog').textContent='▶ המשך';document.getElementById('sw-tog').classList.remove('running');}
+  else{swInt=setInterval(swTick,1000);swRunning=true;document.getElementById('sw-tog').textContent='⏸ עצור';document.getElementById('sw-tog').classList.add('running');}
+}
+function swReset(){clearInterval(swInt);swRunning=false;swSec=0;document.getElementById('sw-disp').textContent='00:00';document.getElementById('sw-tog').textContent='▶ התחל';document.getElementById('sw-tog').classList.remove('running');}
+
+// ── MOCK COUNTDOWN ──
+function mockTick(){
+  mockRemain--;
+  const m=String(Math.floor(mockRemain/60)).padStart(2,'0'),s=String(mockRemain%60).padStart(2,'0');
+  document.getElementById('mock-disp').textContent=m+':'+s;
+  document.getElementById('mock-prog-fill').style.width=(mockRemain/MOCK_TOTAL*100)+'%';
+  if(mockRemain<=600){
+    document.getElementById('mock-disp').style.color='#fca5a5';
+    document.getElementById('mock-warn').style.display='block';
+  }
+  if(mockRemain<=0){clearInterval(mockInt);mockInt=null;toast('הזמן נגמר! 🛬');finishQuiz();}
+}
+function startMockTimer(){
+  clearInterval(mockInt);
+  mockRemain=MOCK_TOTAL;
+  document.getElementById('mock-disp').textContent='60:00';
+  document.getElementById('mock-disp').style.color='var(--gold)';
+  document.getElementById('mock-prog-fill').style.width='100%';
+  document.getElementById('mock-warn').style.display='none';
+  mockInt=setInterval(mockTick,1000);
+}
+function stopMockTimer(){clearInterval(mockInt);mockInt=null;}
+
+function swAutoStart(){
+  swReset();
+  document.getElementById('sw-bar').style.display=(curMode!=='mock'&&opts.timer)?'flex':'none';
+  document.getElementById('mock-timer-bar').style.display=(curMode==='mock')?'block':'none';
+  if(curMode==='mock'){startMockTimer();}
+  else if(opts.timer){swToggle();}
+}
+function fmtTime(s){return String(Math.floor(s/60)).padStart(2,'0')+':'+String(s%60).padStart(2,'0');}
+
+// ── TABS ──
+function showTab(t){
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('on'));
+  document.querySelectorAll('.tab').forEach(b=>b.classList.remove('on'));
+  document.getElementById('page-'+t).classList.add('on');
+  const m={home:0,quiz:1,results:1,history:2,editor:3};
+  if(m[t]!=null)document.querySelectorAll('.tab')[m[t]].classList.add('on');
+  if(t==='editor')renderEditor();
+  if(t==='history')renderHist();
+  if(t==='home')updateHome();
+}
+
+// ── QUIZ ──
+function shuf(a){for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];}return a;}
+
+function startQuiz(mode){
+  curMode=mode;UA={};ci=0;
+  let pool=[...QUESTIONS];
+  if(mode==='wrong'){pool=QUESTIONS.filter(q=>wrongH.has(q.num));if(!pool.length){toast('אין שאלות שטעית עדיין!');return;}}
+  if(mode==='bookmarks'){pool=QUESTIONS.filter(q=>bookmarks.has(q.num));if(!pool.length){toast('אין שאלות מסומנות!');return;}}
+  if(mode==='unanswered'){const d=new Set([...wrongH,...corrH]);pool=QUESTIONS.filter(q=>!d.has(q.num));if(!pool.length){toast('ענית על כל השאלות!');return;}}
+  if(mode==='random'||mode==='mock')pool=shuf(pool);
+  if(mode==='mock')pool=pool.slice(0,30);
+  QQ=pool;
+  swAutoStart();
+  showTab('quiz');
+  buildNavGrid();
+  renderQ();
+}
+
+function renderQ(){
+  const q=QQ[ci];if(!q){finishQuiz();return;}
+  const tot=QQ.length;
+  // progress
+  const ans=Object.values(UA).filter(v=>v&&v!=='sk').length;
+  document.getElementById('prog').style.width=(ans/tot*100)+'%';
+  document.getElementById('qctr').textContent=`שאלה ${ci+1} מתוך ${tot}`;
+  document.getElementById('qnbadge').textContent=`מס׳ ${q.num}`;
+  document.getElementById('qnbadge').style.display=opts.qnum?'inline-block':'none';
+  document.getElementById('sw-bar').style.display=(curMode!=='mock'&&opts.timer)?'flex':'none';
+  document.getElementById('mock-timer-bar').style.display=(curMode==='mock')?'block':'none';
+  // bookmark
+  const bb=document.getElementById('bmbtn');
+  bb.style.filter=bookmarks.has(q.num)?'none':'grayscale(1)';
+  // question
+  document.getElementById('qtext').textContent=q.q;
+  // note
+  document.getElementById('note-inp').value=notes[q.num]||'';
+  document.getElementById('note-sec').classList.remove('show');
+  // answers
+  let ans_arr=[...q.answers];
+  if(opts.shuffle)ans_arr=shuf(ans_arr);
+  const grid=document.getElementById('ans-grid');
+  grid.innerHTML='';
+  ans_arr.forEach((a,i)=>{
+    const btn=document.createElement('button');
+    btn.className='ans-btn';
+    btn.innerHTML=`<span class="aletter">${LETTERS[i]}</span><span>${a}</span>`;
+    btn.onclick=()=>selectA(a,btn,ans_arr);
+    grid.appendChild(btn);
+  });
+  // feedback
+  document.getElementById('fb').className='fb';
+  // next/finish
+  const nb=document.getElementById('next-btn'),fb2=document.getElementById('fin-btn');
+  const isLast=ci===tot-1;
+  const ua=UA[ci];
+  if(ua&&ua!=='sk'){
+    if(curMode==='mock'){
+      document.querySelectorAll('.ans-btn').forEach(b=>{b.disabled=true;});
+      document.getElementById('fb').className='fb';
+    }else{
+      disableA(ua.answer,ans_arr);showFb(ua.correct);
+    }
+    nb.style.display=isLast?'none':'inline-block';
+    fb2.style.display=isLast?'inline-block':'none';
+  }else{nb.style.display='none';fb2.style.display='none';}
+  updNav();
+}
+
+function selectA(answer,btn,all){
+  if(UA[ci]&&UA[ci]!=='sk')return;
+  const q=QQ[ci];const ok=answer===q.correct;
+  UA[ci]={answer,correct:ok};
+  if(ok){corrH.add(q.num);wrongH.delete(q.num);}else wrongH.add(q.num);
+  persist();updHdrScore();
+  if(curMode==='mock'){
+    // mock: just disable buttons, no colors, no feedback
+    document.querySelectorAll('.ans-btn').forEach(b=>{b.disabled=true;});
+    document.getElementById('fb').className='fb';
+  }else{
+    disableA(answer,all);showFb(ok);
+  }
+  const isLast=ci===QQ.length-1;
+  document.getElementById('next-btn').style.display=isLast?'none':'inline-block';
+  document.getElementById('fin-btn').style.display=isLast?'inline-block':'none';
+  updNav();
+}
+
+function disableA(sel,all){
+  const q=QQ[ci];
+  document.querySelectorAll('.ans-btn').forEach(b=>{
+    b.disabled=true;
+    const t=b.querySelector('span:last-child').textContent;
+    if(t===sel)b.classList.add(t===q.correct?'correct':'wrong');
+    else if(t===q.correct)b.classList.add('show-correct');
+  });
+}
+
+function showFb(ok){
+  const fb=document.getElementById('fb'),q=QQ[ci];
+  const exp=q.explanation&&q.explanation.trim();
+  const expHtml=exp?`<div style="margin-top:8px;padding-top:8px;border-top:1px solid rgba(255,255,255,.1);font-size:12px;font-weight:400;line-height:1.6;color:rgba(255,255,255,.85)"><span style="font-weight:700;color:var(--gold)">💡 הסבר: </span>${exp}</div>`:'';
+  if(ok){
+    fb.className='fb show ok';
+    document.getElementById('fb-ico').textContent='✅';
+    document.getElementById('fb-txt').innerHTML='תשובה נכונה! כל הכבוד.'+expHtml;
+  }else{
+    fb.className='fb show no';
+    document.getElementById('fb-ico').textContent='❌';
+    document.getElementById('fb-txt').innerHTML='תשובה שגויה. הנכונה: <strong>'+q.correct+'</strong>'+expHtml;
+  }
+}
+
+function nextQ(){saveNote();ci++;renderQ();}
+function prevQ(){saveNote();if(ci>0){ci--;renderQ();}}
+function skipQ(){if(!UA[ci])UA[ci]='sk';updNav();ci++;if(ci>=QQ.length)finishQuiz();else renderQ();}
+function finishQuiz(){saveNote();if(swRunning)swToggle();stopMockTimer();showResults();}
+
+function saveNote(){
+  const q=QQ[ci];if(!q)return;
+  const v=document.getElementById('note-inp').value.trim();
+  if(v)notes[q.num]=v;else delete notes[q.num];
+  localStorage.setItem('notes',JSON.stringify(notes));
+}
+function toggleNote(){document.getElementById('note-sec').classList.toggle('show');if(document.getElementById('note-sec').classList.contains('show'))document.getElementById('note-inp').focus();}
+function toggleBm(){const q=QQ[ci];if(!q)return;bookmarks.has(q.num)?bookmarks.delete(q.num):bookmarks.add(q.num);persist();renderQ();updateHome();}
+
+// NAVIGATOR
+function buildNavGrid(){
+  const g=document.getElementById('qnav-grid');g.innerHTML='';
+  QQ.forEach((q,i)=>{
+    const b=document.createElement('button');
+    b.className='qnb';b.id='nb-'+i;b.textContent=i+1;
+    b.title=q.q.substring(0,50);
+    b.onclick=()=>{saveNote();ci=i;renderQ();};
+    if(bookmarks.has(q.num))b.classList.add('nbm');
+    g.appendChild(b);
+  });
+}
+function updNav(){
+  QQ.forEach((q,i)=>{
+    const b=document.getElementById('nb-'+i);if(!b)return;
+    b.className='qnb';
+    if(i===ci)b.classList.add('cur');
+    const ua=UA[i];
+    if(ua&&ua!=='sk'){
+      if(curMode==='mock')b.classList.add('na');
+      else b.classList.add(ua.correct?'nc':'nw');
+    }else if(ua==='sk')b.classList.add('ns');
+    if(bookmarks.has(q.num))b.classList.add('nbm');
+  });
+}
+
+// OPTIONS
+function toggleOpt(k){
+  opts[k]=!opts[k];
+  document.getElementById('p-'+k).classList.toggle('on',opts[k]);
+  if(k==='timer')document.getElementById('sw-bar').style.display=(curMode!=='mock'&&opts.timer)?'flex':'none';
+  document.getElementById('mock-timer-bar').style.display=(curMode==='mock')?'block':'none';
+  if(k==='qnum')document.getElementById('qnbadge').style.display=(opts.qnum&&QQ.length)?'inline-block':'none';
+}
+
+function updHdrScore(){
+  const vs=Object.values(UA).filter(v=>v&&v!=='sk');
+  const ok=vs.filter(v=>v.correct).length;
+  document.getElementById('hdr-score').textContent=vs.length?Math.round(ok/vs.length*100)+'%':'—';
+}
+
+// ── RESULTS ──
+let revData=[];
+function showResults(){
+  document.getElementById('page-quiz').classList.remove('on');
+  document.getElementById('page-results').classList.add('on');
+  document.querySelectorAll('.tab').forEach(b=>b.classList.remove('on'));
+  document.querySelectorAll('.tab')[1].classList.add('on');
+  let c=0,w=0,s=0;
+  QQ.forEach((_,i)=>{const ua=UA[i];if(!ua||ua==='sk')s++;else if(ua.correct)c++;else w++;});
+  const ans=c+w,pct=ans>0?Math.round(c/ans*100):0,pass=pct>=75;
+  document.getElementById('res-pct').textContent=pct+'%';
+  document.getElementById('res-verdict').textContent=pass?'✈️ עבר':'📚 לא עבר';
+  document.getElementById('res-circle').className='res-circle '+(pass?'pass':'fail');
+  document.getElementById('res-title').textContent=pass?'!כל הכבוד, עברת!':'צריך עוד תרגול';
+  document.getElementById('res-sub').textContent=`${c} מתוך ${ans} תשובות נכונות`;
+  document.getElementById('res-time').textContent=`⏱ זמן: ${fmtTime(swSec)}`;
+  document.getElementById('rc').textContent=c;document.getElementById('rw').textContent=w;document.getElementById('rs').textContent=s;
+  hist.unshift({date:new Date().toLocaleDateString('he-IL'),mode:curMode,pct,correct:c,wrong:w,skipped:s,total:QQ.length,time:fmtTime(swSec)});
+  if(hist.length>50)hist=hist.slice(0,50);
+  localStorage.setItem('sh',JSON.stringify(hist));
+  revData=QQ.map((q,i)=>{const ua=UA[i];return{q,i,status:!ua||ua==='sk'?'skipped':ua.correct?'correct':'wrong',your:ua&&ua!=='sk'?ua.answer:null,note:notes[q.num]||null};});
+  buildRev('all');
+}
+
+function buildRev(flt){
+  const list=document.getElementById('rev-list');list.innerHTML='';
+  const items=flt==='all'?revData:revData.filter(r=>r.status===flt);
+  if(!items.length){list.innerHTML='<div style="text-align:center;padding:22px;color:var(--muted);font-size:13px">אין פריטים</div>';return;}
+  items.forEach(({q,i,status,your,note})=>{
+    const cls=status==='correct'?'ok':status==='wrong'?'no':'sk';
+    const badge=`<span class="rbadge ${cls}">${status==='correct'?'✓ נכון':status==='wrong'?'✗ שגוי':'דולג'}</span>`;
+    const d=document.createElement('div');
+    d.className='rev-item '+cls;
+    d.innerHTML=`<div class="rev-hdr"><div class="rev-q">${i+1}. ${q.q}</div>${badge}</div>
+      <div class="rev-detail" id="rd-${i}">
+        ${your&&your!==q.correct?`<div class="ra wrong-a">❌ תשובתך: ${your}</div>`:''}
+        <div class="ra right-a">✅ תשובה נכונה: ${q.correct}</div>
+        ${note?`<div class="ra note-a">💡 ${note}</div>`:''}
+      </div>`;
+    d.onclick=()=>document.getElementById('rd-'+i).classList.toggle('open');
+    list.appendChild(d);
+  });
+}
+
+function filterRev(f,btn){document.querySelectorAll('.rev-filters .tpill').forEach(b=>b.classList.remove('on'));btn.classList.add('on');buildRev(f);}
+function restartQ(){startQuiz(curMode);}
+
+// ── HISTORY ──
+function renderHist(){
+  const l=document.getElementById('hist-list');
+  if(!hist.length){l.innerHTML='<div style="text-align:center;padding:40px;color:var(--muted);font-size:14px">עוד לא ביצעת מבחנים. התחל לתרגל!</div>';return;}
+  l.innerHTML='';
+  hist.forEach(h=>{
+    const pass=h.pct>=75;
+    const d=document.createElement('div');d.className='hi';
+    d.innerHTML=`<div><div class="hi-score ${pass?'pass':'fail'}">${h.pct}%</div><div class="hi-meta">${h.date} · ${MODE_NAMES[h.mode]||h.mode}</div></div>
+      <div class="hi-detail">✅${h.correct} ❌${h.wrong} ⏭${h.skipped}<br>📋${h.total} שאלות &nbsp;⏱${h.time}</div>`;
+    l.appendChild(d);
+  });
+}
+function clearHist(){if(!confirm('למחוק את כל ההיסטוריה?'))return;hist=[];localStorage.setItem('sh','[]');renderHist();}
+
+// ── PERSIST ──
+function persist(){localStorage.setItem('bm',JSON.stringify([...bookmarks]));localStorage.setItem('wh',JSON.stringify([...wrongH]));localStorage.setItem('ac',JSON.stringify([...corrH]));}
+
+function updateHome(){
+  document.getElementById('h-total').textContent=QUESTIONS.length;
+  document.getElementById('h-correct').textContent=corrH.size;
+  document.getElementById('h-wrong').textContent=wrongH.size;
+  document.getElementById('h-bm').textContent=bookmarks.size;
+  document.getElementById('hdr-total').textContent=QUESTIONS.length;
+}
+
+// ── EDITOR ──
+function renderEditor(){
+  const l=document.getElementById('ed-list');l.innerHTML='';
+  QUESTIONS.forEach((q,i)=>l.appendChild(buildEI(q,i)));
+}
+function buildEI(q,i){
+  const d=document.createElement('div');d.className='ei';d.id='ei-'+i;
+  const ah=q.answers.map((a,ai)=>`<div class="arow"><input type="radio" name="cr-${i}" value="${ai}" ${a===q.correct?'checked':''}><input class="finput ai-${i}" type="text" value="${escHtml(a)}" placeholder="תשובה ${ai+1}"><button onclick="rmA(${i},${ai})" style="background:none;border:none;color:#f87171;cursor:pointer;font-size:14px;padding:3px">✕</button></div>`).join('');
+  const hasExp=q.explanation&&q.explanation.trim();
+  d.innerHTML=`<div class="ei-hdr" onclick="togEI(${i})">
+    <span class="ei-qnum">${q.num}</span>
+    <span class="ei-prev">${q.q.substring(0,65)}${q.q.length>65?'...':''}</span>
+    <span style="display:flex;align-items:center;gap:5px">${hasExp?'<span title="יש הסבר" style="font-size:13px">💡</span>':''}<span class="ei-arr">▼</span></span>
+  </div>
+  <div class="ei-form">
+    <div class="fg"><label class="flbl">טקסט השאלה</label><textarea class="finput qt-${i}" rows="3">${escHtml(q.q)}</textarea></div>
+    <div class="fg"><label class="flbl">תשובות (סמן ✓ נכונה)</label><div class="ae" id="ae-${i}">${ah}</div>
+      <button onclick="addA(${i})" style="margin-top:5px;background:rgba(255,255,255,.04);border:1px dashed rgba(255,255,255,.14);color:var(--muted);padding:4px 11px;border-radius:5px;cursor:pointer;font-family:Heebo,sans-serif;font-size:11px;width:100%">+ תשובה</button></div>
+    <div class="fg" style="border:1px solid rgba(240,180,41,.25);border-radius:10px;padding:12px;background:rgba(240,180,41,.04)">
+      <label class="flbl" style="color:var(--gold)">💡 הסבר לתשובה הנכונה</label>
+      <textarea class="finput exp-${i}" rows="4" placeholder="הכנס כאן הסבר מפורט לתשובה הנכונה. ניתן להעתיק מהמצגת או לכתוב בחופשי...">${escHtml(q.explanation||'')}</textarea>
+      <div style="font-size:10px;color:var(--muted);margin-top:4px;text-align:right">ההסבר יוצג לאחר מענה על השאלה בתרגול רגיל</div>
+    </div>
+    <div class="ei-acts"><button class="btn-del" onclick="delQ(${i})">🗑 מחק</button><button class="btn-green" onclick="saveQ(${i})">💾 שמור</button></div>
+  </div>`;
+  return d;
+}
+function escHtml(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
+function togEI(i){document.getElementById('ei-'+i).classList.toggle('open');}
+function saveQ(i){
+  const qt=document.querySelector(`.qt-${i}`).value.trim();
+  const inputs=document.querySelectorAll(`.ai-${i}`);
+  const radios=document.querySelectorAll(`input[name="cr-${i}"]`);
+  let ci2=0;radios.forEach((r,j)=>{if(r.checked)ci2=j;});
+  const answers=Array.from(inputs).map(x=>x.value.trim()).filter(Boolean);
+  if(!answers.length||!qt){toast('❌ חסרים נתונים');return;}
+  QUESTIONS[i].q=qt;QUESTIONS[i].answers=answers;QUESTIONS[i].correct=answers[ci2]||answers[0];
+  const exp=document.querySelector(`.exp-${i}`)?.value.trim();
+  QUESTIONS[i].explanation=exp||'';
+  renderEditor();toast('✅ נשמר!');updateHome();
+}
+function delQ(i){if(!confirm('למחוק?'))return;QUESTIONS.splice(i,1);renderEditor();updateHome();toast('🗑 נמחק');}
+function addA(i){const c=document.getElementById('ae-'+i),ai=c.children.length;const r=document.createElement('div');r.className='arow';r.innerHTML=`<input type="radio" name="cr-${i}" value="${ai}"><input class="finput ai-${i}" type="text" value="" placeholder="תשובה חדשה"><button onclick="this.parentElement.remove()" style="background:none;border:none;color:#f87171;cursor:pointer;font-size:14px;padding:3px">✕</button>`;c.appendChild(r);}
+function rmA(i,ai){const c=document.getElementById('ae-'+i);if(c.children.length<=2){toast('❌ לפחות 2 תשובות');return;}c.children[ai].remove();}
+function addNewQ(){QUESTIONS.push({num:QUESTIONS.length+1,q:'שאלה חדשה',answers:['תשובה א','תשובה ב','תשובה ג','תשובה ד'],correct:'תשובה א'});renderEditor();const last=QUESTIONS.length-1;setTimeout(()=>{document.getElementById('ei-'+last)?.classList.add('open');document.getElementById('ei-'+last)?.scrollIntoView({behavior:'smooth'});},100);updateHome();}
+function exportQ(){const b=new Blob([JSON.stringify(QUESTIONS,null,2)],{type:'application/json'});const a=document.createElement('a');a.href=URL.createObjectURL(b);a.download='aviation-questions.json';a.click();toast('💾 ייוצא!');}
+
+// ── TOAST ──
+function toast(m){const t=document.getElementById('toast');t.textContent=m;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),2400);}
+
+
+// ── COUNT MODAL ──
+let modalMode='all', modalMax=140, modalCount=20;
+
+function openCountModal(mode){
+  modalMode=mode;
+  let pool=[...QUESTIONS];
+  if(mode==='random') pool=shuf(pool);
+  modalMax=pool.length;
+  modalCount=Math.min(20,modalMax);
+  document.getElementById('modal-title').textContent=mode==='all'?'כל השאלות – כמה לתרגל?':'סדר אקראי – כמה שאלות?';
+  document.getElementById('modal-max-lbl').textContent='סה"כ זמין: '+modalMax+' שאלות';
+  document.getElementById('count-display').textContent=modalCount;
+  document.getElementById('count-modal').style.display='flex';
+}
+function closeCountModal(){document.getElementById('count-modal').style.display='none';}
+function changeCount(d){setCount(modalCount+d);}
+function setCount(n){modalCount=Math.max(1,Math.min(modalMax,n));document.getElementById('count-display').textContent=modalCount;}
+function setCountAll(){setCount(modalMax);}
+function confirmCountModal(){
+  closeCountModal();
+  curMode=modalMode;UA={};ci=0;
+  let pool=[...QUESTIONS];
+  if(modalMode==='random') pool=shuf(pool);
+  pool=pool.slice(0,modalCount);
+  QQ=pool;
+  swAutoStart();
+  showTab('quiz');
+  buildNavGrid();
+  renderQ();
+}
+
+// INIT
+updateHome();
+</script>
+
+<!-- QUESTION COUNT MODAL -->
+<div id="count-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:500;align-items:center;justify-content:center;">
+  <div style="background:#0d2045;border:1px solid rgba(240,180,41,.3);border-radius:16px;padding:28px 24px;width:320px;max-width:90vw;text-align:center;">
+    <div style="font-size:24px;margin-bottom:10px;">🎯</div>
+    <h3 id="modal-title" style="font-size:17px;font-weight:800;color:var(--gold);margin-bottom:6px;">כמה שאלות?</h3>
+    <p style="font-size:12px;color:var(--muted);margin-bottom:18px;" id="modal-max-lbl">בחר מספר שאלות</p>
+    <div style="display:flex;align-items:center;justify-content:center;gap:14px;margin-bottom:20px;">
+      <button onclick="changeCount(-10)" style="background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.15);color:white;border-radius:8px;width:36px;height:36px;font-size:16px;font-weight:700;cursor:pointer;">-10</button>
+      <button onclick="changeCount(-1)" style="background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.15);color:white;border-radius:8px;width:36px;height:36px;font-size:18px;font-weight:700;cursor:pointer;">−</button>
+      <span id="count-display" style="font-size:36px;font-weight:900;color:var(--white);min-width:60px;">20</span>
+      <button onclick="changeCount(1)" style="background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.15);color:white;border-radius:8px;width:36px;height:36px;font-size:18px;font-weight:700;cursor:pointer;">+</button>
+      <button onclick="changeCount(10)" style="background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.15);color:white;border-radius:8px;width:36px;height:36px;font-size:16px;font-weight:700;cursor:pointer;">+10</button>
+    </div>
+    <div style="display:flex;gap:8px;justify-content:center;flex-wrap:wrap;margin-bottom:20px;">
+      <button onclick="setCount(10)" class="tpill">10</button>
+      <button onclick="setCount(20)" class="tpill">20</button>
+      <button onclick="setCount(30)" class="tpill">30</button>
+      <button onclick="setCount(50)" class="tpill">50</button>
+      <button onclick="setCountAll()" class="tpill">הכל</button>
+    </div>
+    <div style="display:flex;gap:8px;">
+      <button onclick="closeCountModal()" class="btn btn-ghost" style="flex:1">ביטול</button>
+      <button onclick="confirmCountModal()" class="btn btn-gold" style="flex:2">התחל ✈️</button>
+    </div>
+  </div>
+</div>
+
+<script>
+if('serviceWorker' in navigator){
+  window.addEventListener('load', ()=>{
+    navigator.serviceWorker.register('./sw.js')
+      .then(()=>console.log('SW registered'))
+      .catch(e=>console.log('SW error',e));
+  });
+}
+</script>
+</body>
+</html>
